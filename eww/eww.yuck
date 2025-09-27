@@ -1,0 +1,59 @@
+(defpoll days :interval "1s" "bash ~/.config/eww/scripts/countdown.sh | sed -n '1p'")
+(defpoll hours :interval "1s" "bash ~/.config/eww/scripts/countdown.sh | sed -n '2p'")
+(defpoll minutes :interval "1s" "bash ~/.config/eww/scripts/countdown.sh | sed -n '3p'")
+(defpoll seconds :interval "1s" "bash ~/.config/eww/scripts/countdown.sh | sed -n '4p'")
+
+(defwidget countdown-box [value label]
+  (box :class "countdown-box"
+       :orientation "vertical"
+       :space-evenly false
+       :halign "center"
+    (label :class "value-text" :text value :halign "center")
+    (label :class "label-text" :text label :halign "center")
+  )
+)
+
+(defwidget gate-countdown []
+  (box :class "countdown-widget"
+       :orientation "vertical"
+       :space-evenly false
+
+    (box :class "title-area"
+         :orientation "vertical"
+         :space-evenly false
+         :halign "center"
+      (label :class "title" :text "GATE Exam Feb 2026" :halign "center")
+      (label :class "subtitle" :text "Timer Ends on October 24 2025" :halign "center")
+    )
+
+    (label :class "countdown-label" :text "Countdown" :halign "center")
+
+    (box :class "boxes-container"
+         :orientation "horizontal"
+         :space-evenly true
+      (countdown-box :value days :label "DAYS")
+      (countdown-box :value hours :label "HOURS")
+      (countdown-box :value minutes :label "MINUTES")
+      (countdown-box :value seconds :label "SECONDS")
+    )
+
+    (box :class "footer"
+         :orientation "horizontal"
+         :space-evenly false
+         :halign "center"
+      (label :class "hourglass" :text "⏳")
+      (label :class "footer-text" :text "Time left until the exam day!")
+    )
+  )
+)
+
+(defwindow countdown_window
+  :monitor 0
+  :geometry (geometry :x "67%"
+                     :y "1%"
+                     :width "350px"
+                     :height "200px")
+  :stacking "bg"
+  :windowtype "normal"
+  (gate-countdown)
+)
