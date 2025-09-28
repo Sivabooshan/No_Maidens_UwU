@@ -59,7 +59,7 @@
 Before embarking upon this noble quest, thou must first acquire the mighty **paru** (thy AUR companion):
 
 ```bash
-sudo pacman -S --needed base-devel
+sudo pacman -S --needed git base-devel
 git clone https://aur.archlinux.org/paru.git
 cd paru
 makepkg -si
@@ -71,19 +71,24 @@ Ensure these sacred tools are present in thy digital armory:
 
 | Artifact | Purpose | Power Level |
 |----------|---------|-------------|
-| 🔧 **Git** | The version control sorcery | ⭐⭐⭐⭐⭐ |
-| 🔗 **Stow** | The symlink alchemist | ⭐⭐⭐⭐⭐ |
-| 👻 **Ghostty** | Terminal of the spirits | ⭐⭐⭐⭐ |
-| 🖥️ **TMUX** | The session multiplier | ⭐⭐⭐⭐ |
-| ⚡ **FastFetch** | The swift system herald | ⭐⭐⭐ |
-| 🪟 **Hyprland** | The wayland window wizard | ⭐⭐⭐⭐⭐ |
-| ⭐ **Starship** | The cosmic prompt navigator | ⭐⭐⭐⭐ |
-| 🎭 **Eww** | The widget weaver of wonders | ⭐⭐⭐⭐ |
+|**🎭Eww**|The widget weaver of wonders| ⭐⭐⭐⭐ |
+|**⚡FastFetch**|The swift system herald| ⭐⭐⭐ |
+|**👻Ghostty**|Terminal of the spirits| ⭐⭐⭐⭐ |
+|**🖼️Gthumb**|The image realm guardian| ⭐⭐⭐ |
+|**🪟Hyprland**|The wayland window wizard| ⭐⭐⭐⭐⭐ |
+|**📜Okular**|The document scroll master| ⭐⭐⭐⭐ |
+|**🛡️Proton VPN**|The privacy shield enchanter| ⭐⭐⭐⭐⭐ |
+|**🌊qBittorrent**|The torrent tide controller| ⭐⭐⭐⭐ |
+|**⭐Starship**|The cosmic prompt navigator| ⭐⭐⭐⭐ |
+|**🔗Stow**|The symlink alchemist| ⭐⭐⭐⭐⭐ |
+|**📱Telegram Desktop**|The encrypted message mystic| ⭐⭐⭐⭐ |
+|**🖥️TMUX**|The session multiplier| ⭐⭐⭐⭐ |
+|**💬ZapZap**|The WhatsApp whisper conduit| ⭐⭐⭐ |
 
 **Summon them all with a single incantation:**
 
 ```bash
-paru -S git stow ghostty tmux fastfetch hyprland starship eww
+paru -S eww fastfetch ghostty gthumb hyprland okular proton-vpn-gtk-app qbittorrent starship stow telegram-desktop tmux zapzap
 ```
 
 ## ⚠ Ancient Wisdom & Compatibility Scrolls
@@ -157,7 +162,7 @@ git clone https://github.com/MichaelAquilina/zsh-you-should-use.git ${ZSH_CUSTOM
 
 ```bash
 git clone https://github.com/Sivabooshan/No_Maidens_UwU.git $HOME/No_Maidens_UwU
-cd No_Maidens_UwU
+cd ~/No_Maidens_UwU/
 ```
 
 ### Step 2: Invoke the Symlink Sorcery
@@ -166,7 +171,7 @@ Backup existing configurations (Safety first!)
 
 ```bash
 mkdir -p ~/.config/backup
-cp -r ~/.config/{hypr,zsh,tmux,ghostty} ~/.config/backup/ 2>/dev/null || true
+cp -r ~/{.tmux.conf,.zshrc} ~/.config/{hypr,tmux,ghostty} ~/.config/backup/ 2>/dev/null || true
 ```
 
 Cast the symlink spell
@@ -178,7 +183,6 @@ stow .
 ### Step 3: Witness the Transformation! ✨
 
 Restart thy system and behold as thy system transforms into a beautiful, efficient powerhouse worthy of the gods themselves!
-
 
 ## 🔧 Post-Installation Configuration (Sacred Rites)
 
