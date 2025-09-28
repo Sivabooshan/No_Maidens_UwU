@@ -151,3 +151,42 @@ git clone https://github.com/marlonrichert/zsh-autocomplete.git ${ZSH_CUSTOM:-~/
 git clone https://github.com/MichaelAquilina/zsh-you-should-use.git ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/you-should-use
 ```
 
+## 🚀 The Grand Installation Ritual
+
+### Step 1: Acquire the Sacred Texts
+
+```bash
+git clone https://github.com/Sivabooshan/No_Maidens_UwU.git $HOME/No_Maidens_UwU
+cd No_Maidens_UwU
+```
+
+### Step 2: Invoke the Symlink Sorcery
+
+Backup existing configurations (Safety first!)
+
+```bash
+mkdir -p ~/.config/backup
+cp -r ~/.config/{hypr,zsh,tmux,ghostty} ~/.config/backup/ 2>/dev/null || true
+```
+
+Cast the symlink spell
+
+```bash
+stow .
+```
+
+### Step 3: Witness the Transformation! ✨
+
+Restart thy system and behold as thy system transforms into a beautiful, efficient powerhouse worthy of the gods themselves!
+
+
+## 🔧 Post-Installation Configuration (Sacred Rites)
+
+### **Hyprland Auto-Start Configuration**
+
+Add these to `~/.config/hypr/hyprland.conf`:
+
+### Essential daemons and applications:
+
+exec-once = eww daemon && eww open countdown_window
+
