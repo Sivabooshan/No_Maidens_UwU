@@ -194,3 +194,36 @@ Add these to `~/.config/hypr/hyprland.conf`:
 
 exec-once = eww daemon && eww open countdown_window
 
+## ⌨ Mystical Keybindings
+
+### **Hyprland Window Management**
+| Combination | Action | Power |
+|-------------|--------|-------|
+| `SUPER + Q` | Close window | 💥 |
+| `SUPER + SHIFT + Q` | Kill window forcefully | ⚡ |
+| `SUPER + T` | Open terminal | 📱 |
+| `SUPER + E` | Open file manager | 📁 |
+| `SUPER + W` | Open browser | 🌐 |
+| `SUPER + C` | Open code editor | 💻 |
+| `SUPER + F` | Toggle fullscreen | 🖥️ |
+| `SUPER + D`| Fullscreen maximize | 🖥️ |
+| `SUPER + SPACE` | Toggle floating | 🎈 |
+| `SUPER + SHIFT + LEFT` | Move window left | 🪟⬅️ |
+| `SUPER + SHIFT + RIGHT` | Move window right | 🪟➡️ |
+| `CTRL + SUPER + SHIFT + LEFT` | Move window to workspace left | 📦⬅️ |
+| `CTRL + SUPER + SHIFT + RIGHT` | Move window to workspace right | 📦⬅️|
+
+### **Workspace Navigation**
+| Combination | Action | Realm |
+|-------------|--------|--------|
+| `SUPER + [1-9]` | Switch to workspace | 🌐 |
+| `SUPER + SHIFT + [1-9]` | Move window to workspace | 📦 |
+| `SUPER + CTRL + LEFT/RIGHT` | Navigate workspaces | ⬅️➡️ |
+
+### **System Controls**
+| Combination | Action | Element |
+|-------------|--------|---------|
+| `SUPER + CTRL + R` | Restart/Reload Hyprland config & widgets | 🔄 |
+| `SUPER + L` | Lock screen | 🔒 |
+| `SUPER + SHIFT + L` | Suspend system | 😴 |
+| `SUPER + CTRL + DEL` | Power off system | ⏻ |
