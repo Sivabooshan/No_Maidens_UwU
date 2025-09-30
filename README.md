@@ -227,3 +227,159 @@ exec-once = eww daemon && eww open countdown_window
 | `SUPER + L` | Lock screen | 🔒 |
 | `SUPER + SHIFT + L` | Suspend system | 😴 |
 | `SUPER + CTRL + DEL` | Power off system | ⏻ |
+
+---
+
+## 🎯 Quick Start for the Impatient
+
+### ⚡ One-Incantation Installation (For the Fearless Pirates)
+
+```bash
+curl -sSL https://raw.githubusercontent.com/Sivabooshan/No_Maidens_UwU/main/quick-install.sh | bash
+```
+
+⚔️  DIVINE COMMAND FLAGS:
+-h, --help          Display these sacred help scrolls
+-v, --version       Show version of this legendary script
+--diagnose          Run comprehensive system diagnostics
+--dry-run           Simulate the ritual without making changes
+--force             Force installation even if conflicts arise
+--verbose           Enable verbose output for debugging
+--skip-aur          Skip AUR package installation
+
+🛡️ Safer Approach (Blessed by Ancient Wisdom)
+
+```bash
+# Acquire the sacred ritual script first
+curl -sSL https://raw.githubusercontent.com/Sivabooshan/No_Maidens_UwU/main/quick-install.sh -o quick-install.sh
+
+# Grant it executable powers
+chmod +x quick-install.sh
+
+# Check thy system's readiness (highly recommended)
+./quick-install.sh --diagnose
+
+# Commence the sacred installation ritual
+./quick-install.sh
+```
+
+### 🎯 PROPER SACRED INVOCATION:
+
+```bash
+./quick-install.sh [DIVINE_FLAGS]
+```
+
+
+### ⚔️ **Divine Command Flags:**
+- `-h, --help` - Display these sacred help scrolls
+- `-v, --version` - Show version of this legendary script  
+- `--diagnose` - Run comprehensive system diagnostics
+- `--dry-run` - Simulate the ritual without making changes
+- `--force` - Force installation even if conflicts arise
+- `--verbose` - Enable verbose output for debugging
+- `--skip-aur` - Skip AUR package installation
+
+## ⚠️ **Sacred Precautions & Realm Requirements**
+
+### 🏴‍☠️ **Before Thou Embarkest Upon This Quest:**
+
+- **🗺️ ARCH REALM ONLY**: This sacred ritual works exclusively in the Arch Linux realm and its vassal territories (EndeavourOS, Manjaro, ArcoLinux, etc.)
+- **💾 PRESERVE THY ARTIFACTS**: The script creates divine backup vaults, but manual preservation of critical configs is always wise
+- **⏰ TIME OF POWER**: Allow 15-30 minutes for the complete ritual (depending on thy realm's ethereal connection and computational prowess)
+- **🌐 ETHEREAL BONDS REQUIRED**: Stable connection to the sacred repositories is essential
+- **🚫 NEVER INVOKE WITH SUDO**: The script has bulletproof root prevention and will banish itself if invoked with sudo powers
+
+### 💀 **Potential Curses & Their Solutions:**
+
+- **⚔️ Configuration Conflicts**: Existing dotfiles may clash with new sacred configs (script handles this with backup sanctuaries)
+- **📦 AUR Artifact Failures**: Some treasures from the AUR realm might fail to forge on certain systems
+- **🌐 Network Realm Issues**: Installation may falter if repositories become unreachable
+- **🔐 Permission Curses**: Running as root is **FORBIDDEN** - script will reject thee with dramatic warnings
+
+## 🔧 **Post-Ritual Sacred Rites**
+
+### ✨ **Immediate Divine Actions:**
+
+Awaken thy new shell powers
+
+```bash
+source ~/.zshrc
+```
+
+Or restart thy terminal sanctuary completely (highly recommended)
+
+
+### 🔄 **If Curses Befall Thee:**
+
+Consult the sacred ritual scrolls
+
+```bash
+cat ~/.local/log/dotfiles-ritual-*.log
+```
+
+Manual restoration ritual if needed
+
+```bash
+cd ~/No_Maidens_UwU
+stow -D . # Unbind the sacred symlinks
+cp -r ~/.config/dotfiles-backup-/ ~/ # Restore from thy sanctuary
+```
+
+
+## ⚡ **Sacred Features & Divine Protections**
+
+| Sacred Power | Divine Description | Protection Level |
+|--------------|-------------------|------------------|
+| 🛡️ **Root Prevention** | Dramatic banishment if run with sudo | ⭐⭐⭐⭐⭐ |
+| 🔍 **Smart Diagnostics** | Focused prerequisite checking only | ⭐⭐⭐⭐⭐ |
+| 💾 **Auto Sanctuaries** | All existing configs preserved in vaults | ⭐⭐⭐⭐⭐ |
+| 🔄 **Restoration Magic** | Can undo all changes if cursed | ⭐⭐⭐⭐ |
+| 📜 **Divine Scrolls** | Everything inscribed with holy timestamps | ⭐⭐⭐⭐⭐ |
+| ⚔️ **Conflict Resolution** | Handles clashing configurations with wisdom | ⭐⭐⭐⭐ |
+| 🙏 **Mortal Consent** | Seeks thy blessing before major transformations | ⭐⭐⭐⭐⭐ |
+| 🧪 **Dry Run Testing** | Safe simulation mode for cautious pirates | ⭐⭐⭐⭐ |
+
+## 🏃‍♀️ **TL;DR for the Extremely Impatient Pirates**
+
+```bash
+curl -sSL https://raw.githubusercontent.com/Sivabooshan/No_Maidens_UwU/main/quick-install.sh | bash && source ~/.zshrc
+```
+
+### ⚠️ **Only invoke the one-liner incantation if thou:**
+
+- **Trustest the source** with thy digital soul completely
+- **Art upon a fresh Arch Linux installation**
+- **Possessest recent backups** of thy sacred realm
+- **Understandest the risks** of piping ethereal content to bash
+
+## 🏴‍☠️ **Project Raftal Edition - Enhanced Powers**
+
+**New in this legendary release:**
+
+- 🔍 **Smart Diagnostics**: `--diagnose` flag for system readiness
+- 🛡️ **Bulletproof Root Prevention**: Dramatic warnings if invoked incorrectly
+- 🧪 **Dry Run Mode**: Test safely with `--dry-run`
+- 📝 **Enhanced Logging**: Detailed ritual scrolls with timestamps
+- ⚡ **Auto-Install Prerequisites**: Missing tools installed automatically
+
+---
+
+### 🎯 **Legendary Pro Tip:**
+
+For production realms or if uncertainty plagues thee, always use the **safer blessed approach** - acquire the script first, run `--diagnose` to verify thy system, then execute within thy own sanctuary!
+
+**🏴‍☠️ "With great power comes great responsibility - and great dotfiles!" ⚔️**
+
+**"May thy terminal be swift, thy configs be blessed, and thy productivity legendary!" 🌟**
+
+**May thy configs be forever blessed! 🙏**
+
+---
+
+<div align="center">
+
+### ⭐ **Star this repository if it serves thee well!** ⭐
+
+**Share thy screenshots in [Discussions](https://github.com/Sivabooshan/No_Maidens_UwU/discussions) to inspire fellow adventurers!** 📸
+
+</div>
