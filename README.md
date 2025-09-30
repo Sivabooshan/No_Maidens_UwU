@@ -238,15 +238,6 @@ exec-once = eww daemon && eww open countdown_window
 curl -sSL https://raw.githubusercontent.com/Sivabooshan/No_Maidens_UwU/main/quick-install.sh | bash
 ```
 
-⚔️  DIVINE COMMAND FLAGS:
--h, --help          Display these sacred help scrolls
--v, --version       Show version of this legendary script
---diagnose          Run comprehensive system diagnostics
---dry-run           Simulate the ritual without making changes
---force             Force installation even if conflicts arise
---verbose           Enable verbose output for debugging
---skip-aur          Skip AUR package installation
-
 🛡️ Safer Approach (Blessed by Ancient Wisdom)
 
 ```bash
@@ -271,6 +262,7 @@ chmod +x quick-install.sh
 
 
 ### ⚔️ **Divine Command Flags:**
+
 - `-h, --help` - Display these sacred help scrolls
 - `-v, --version` - Show version of this legendary script  
 - `--diagnose` - Run comprehensive system diagnostics
@@ -371,8 +363,6 @@ For production realms or if uncertainty plagues thee, always use the **safer ble
 **🏴‍☠️ "With great power comes great responsibility - and great dotfiles!" ⚔️**
 
 **"May thy terminal be swift, thy configs be blessed, and thy productivity legendary!" 🌟**
-
-**May thy configs be forever blessed! 🙏**
 
 ---
 
