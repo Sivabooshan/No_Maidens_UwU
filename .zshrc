@@ -118,3 +118,7 @@ export VISUAL='nvim'
  alias omz="nvim ~/.oh-my-zsh"
  alias open="xdg-open"
  alias fastfetch="~/.config/fastfetch/animate.sh"
+ alias tn="tmux new-session -s"
+ alias tl="tmux list-sessions"
+ alias ta="tmux attach-session"
+ alias tkill="tmux kill-server"
