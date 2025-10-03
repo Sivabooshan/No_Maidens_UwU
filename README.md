@@ -79,16 +79,18 @@ Ensure these sacred tools are present in thy digital armory:
 |**📜Okular**|The document scroll master| ⭐⭐⭐⭐ |
 |**🛡️Proton VPN**|The privacy shield enchanter| ⭐⭐⭐⭐⭐ |
 |**🌊qBittorrent**|The torrent tide controller| ⭐⭐⭐⭐ |
+|**📥Stacher7**|The modern video downloader GUI| ⭐⭐⭐⭐ |
 |**⭐Starship**|The cosmic prompt navigator| ⭐⭐⭐⭐ |
 |**🔗Stow**|The symlink alchemist| ⭐⭐⭐⭐⭐ |
 |**📱Telegram Desktop**|The encrypted message mystic| ⭐⭐⭐⭐ |
+|**⏬Yt-dlp**|The powerful video download core| ⭐⭐⭐⭐⭐ |
 |**🖥️TMUX**|The session multiplier| ⭐⭐⭐⭐ |
 |**💬ZapZap**|The WhatsApp whisper conduit| ⭐⭐⭐ |
 
 **Summon them all with a single incantation:**
 
 ```bash
-paru -S eww fastfetch ghostty gthumb hyprland okular proton-vpn-gtk-app qbittorrent starship stow telegram-desktop tmux zapzap
+paru -S eww fastfetch ghostty gthumb hyprland okular proton-vpn-gtk-app qbittorrent stacher7 starship stow telegram-desktop tmux yt-dlp zapzap
 ```
 
 ## ⚠ Ancient Wisdom & Compatibility Scrolls

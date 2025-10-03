@@ -626,9 +626,11 @@ acquire_aur_treasures() {
     "okular|The Document Scroll Master"
     "proton-vpn-gtk-app|The Privacy Shield Enchanter"
     "qbittorrent|The Torrent Tide Controller"
+    "stacher7|The modern video downloader GUI"
     "starship|The Cosmic Prompt Navigator"
     "stow|The Symlink Alchemist"
     "telegram-desktop|The Encrypted Message Mystic"
+    "yt-dlp|The powerful video download core"
     "tmux|The Session Multiplier"
     "zapzap|The WhatsApp Whisper Conduit"
   )
