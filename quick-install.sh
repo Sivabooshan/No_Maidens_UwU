@@ -5,7 +5,7 @@
 #=============================================================================
 # Author: typpo_24 (The Dotfile Pirate)
 # Description: Automated installation ritual for No_Maidens_UwU sacred configs
-# Version: 1.0 - "Project Raftel"
+# Version: 1.0 - "Project Megiddo"
 # Repository: https://github.com/Sivabooshan/No_Maidens_UwU
 # License: MIT (Maidens-Inclusive Technology) # "NO" licence is not added in repo just thought of the name
 # Last Modified: $(date +"%Y-%m-%d")
