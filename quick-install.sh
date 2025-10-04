@@ -616,8 +616,10 @@ acquire_aur_treasures() {
     return 0
   fi
 
-  # COMPLETE LIST: All 13 sacred treasures
+  # COMPLETE LIST: All 17 sacred treasures
   local sacred_treasures=(
+    "calibre|The digital tome keeper and novel realm guardian"
+    "entr|The ever-watching eye that empowers tmux-autoreload's magic"
     "eww|The Widget Weaver of Wonders"
     "fastfetch|The Swift System Herald"
     "ghostty|Terminal of the Spirits"
