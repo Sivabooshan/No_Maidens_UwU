@@ -71,6 +71,8 @@ Ensure these sacred tools are present in thy digital armory:
 
 | Artifact | Purpose | Power Level |
 |----------|---------|-------------|
+|**📚Calibre**|The digital tome keeper and novel realm guardian| ⭐⭐⭐⭐ |
+|**👁️Entr**|The ever-watching eye that empowers tmux-autoreload's magic| ⭐⭐⭐ |
 |**🎭Eww**|The widget weaver of wonders| ⭐⭐⭐⭐ |
 |**⚡FastFetch**|The swift system herald| ⭐⭐⭐ |
 |**👻Ghostty**|Terminal of the spirits| ⭐⭐⭐⭐ |
@@ -90,7 +92,7 @@ Ensure these sacred tools are present in thy digital armory:
 **Summon them all with a single incantation:**
 
 ```bash
-paru -S eww fastfetch ghostty gthumb hyprland okular proton-vpn-gtk-app qbittorrent stacher7 starship stow telegram-desktop tmux yt-dlp zapzap
+paru -S calibre entr eww fastfetch ghostty gthumb hyprland okular proton-vpn-gtk-app qbittorrent stacher7 starship stow telegram-desktop tmux yt-dlp zapzap
 ```
 
 ## ⚠ Ancient Wisdom & Compatibility Scrolls
@@ -232,6 +234,49 @@ exec-once = eww daemon && eww open countdown_window
 
 ---
 
+## ❓ Frequently Asked Questions
+
+### **🤔 "Can I use this on other distributions?"**
+These dotfiles are optimized for Arch Linux and derivatives. Other distributions may require package name adjustments and dependency installations.
+
+### **🔄 "How do I update the dotfiles?"** 
+
+```bash
+cd ~/No_Maidens_UwU
+git pull origin master
+stow . # Restow to update symlinks
+```
+
+### **🎨 "Can I customize the colors/themes?"**
+Absolutely! Edit the respective config files:
+- **Terminal**: `~/.config/ghostty/config`
+- **Prompt**: `~/.config/starship.toml`
+- **Widgets**: `~/.config/eww/eww.scss`
+
+### **💾 "Will this overwrite my existing configs?"**
+Stow will warn about conflicts. Always backup your configs first:
+
+```bash
+mkdir ~/.config/backup
+cp -r ~/.config/{important-app} ~/.config/backup/
+```
+
+### **🚀 "How do I add my own customizations?"**
+1. Add a star to the repository
+2. Fork this repository
+3. Make your changes
+4. Commit and push to your fork
+5. Use your fork's URL in installation
+
+## 🏆 Hall of Fame (Acknowledgments)
+
+These legendary warriors provided inspiration and code:
+- **Hyprland Team** - Architects of the ultimate compositor  
+- **Starship Team** - Cosmic prompt engineers
+- **Oh My Zsh Community** - Shell enhancement wizards
+- **ElKowar** - Creator of the mighty EWW widgets
+- **Grip** - The markdown preview sorcerers
+
 ## 🎯 Quick Start for the Impatient
 
 ### ⚡ One-Incantation Installation (For the Fearless Pirates)
@@ -346,7 +391,7 @@ curl -sSL https://raw.githubusercontent.com/Sivabooshan/No_Maidens_UwU/main/quic
 - **Possessest recent backups** of thy sacred realm
 - **Understandest the risks** of piping ethereal content to bash
 
-## 🏴‍☠️ **Project Raftal Edition - Enhanced Powers**
+## 🏴‍☠️ **Project Megiddo v1.0 - Enhanced Powers**
 
 **New in this legendary release:**
 
