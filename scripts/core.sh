@@ -58,7 +58,7 @@ log_ok()    { echo -e "${GREEN}✓${NC} $1"; }
 
 dry() {
   if [[ "$DRY_RUN_MODE" == "true" ]]; then
-    warning "[DRY RUN] $*"
+    log_warn "[DRY RUN] $*"
     return 0
   fi
   "$@"
@@ -77,7 +77,7 @@ with_retry() {
       echo "$out"
       return 0
     fi
-    warning "Retry $n/$max..."
+    log_warn "Retry $n/$max..."
     sleep 2
     ((n++))
   done
@@ -96,6 +96,6 @@ show_progress() {
 # REQUIRED: main entry stub (prevents errors)
 # ─────────────────────────────────────────────
 begin_sacred_ritual() {
-  error "begin_sacred_ritual not implemented in core.sh (must be in main.sh)"
+  log_error "begin_sacred_ritual not implemented in core.sh (must be in main.sh)"
   return 1
 }
