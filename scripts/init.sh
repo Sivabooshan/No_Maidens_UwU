@@ -7,30 +7,32 @@ set -euo pipefail
 INIT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # ─────────────────────────────────────────────
-# Global flags (DEFAULTS FIRST)
+# Global flags (defaults)
 # ─────────────────────────────────────────────
 DRY_RUN_MODE=false
 FORCE_MODE=false
 VERBOSE_MODE=false
 SKIP_AUR=false
 DIAGNOSE_MODE=false
+AUTO_DEPENDENCY=true
 
 # ─────────────────────────────────────────────
-# CLI parser (must come BEFORE modules load)
+# CLI parser
 # ─────────────────────────────────────────────
 while [[ $# -gt 0 ]]; do
   case "$1" in
-  --dry-run) DRY_RUN_MODE=true ;;
-  --force) FORCE_MODE=true ;;
-  --verbose) VERBOSE_MODE=true ;;
-  --skip-aur) SKIP_AUR=true ;;
-  --diagnose) DIAGNOSE_MODE=true ;;
-  *) echo "⚠️ Unknown flag: $1" ;;
+    --dry-run) DRY_RUN_MODE=true ;;
+    --force) FORCE_MODE=true ;;
+    --verbose) VERBOSE_MODE=true ;;
+    --skip-aur) SKIP_AUR=true ;;
+    --diagnose) DIAGNOSE_MODE=true ;;
+    --no-auto-deps) AUTO_DEPENDENCY=false ;;
+    *) echo "⚠️ Unknown flag: $1" ;;
   esac
   shift
 done
 
-export DRY_RUN_MODE FORCE_MODE VERBOSE_MODE SKIP_AUR DIAGNOSE_MODE
+export DRY_RUN_MODE FORCE_MODE VERBOSE_MODE SKIP_AUR DIAGNOSE_MODE AUTO_DEPENDENCY
 
 # ─────────────────────────────────────────────
 # Core loader
@@ -38,7 +40,25 @@ export DRY_RUN_MODE FORCE_MODE VERBOSE_MODE SKIP_AUR DIAGNOSE_MODE
 source "$INIT_DIR/core.sh"
 
 # ─────────────────────────────────────────────
-# 🧠 Bootstrap system (idempotent multilib)
+# 🧠 Auto dependency bootstrap (pacman-first hybrid hook)
+# ─────────────────────────────────────────────
+ensure_system_tools() {
+  log_info "Checking base system tools..."
+
+  local pkgs=("git" "base-devel")
+
+  for pkg in "${pkgs[@]}"; do
+    if ! command -v "$pkg" &>/dev/null && ! pacman -Q "$pkg" &>/dev/null; then
+      log_warn "Missing $pkg → installing"
+      sudo pacman -S --needed --noconfirm "$pkg" || true
+    fi
+  done
+}
+
+ensure_system_tools
+
+# ─────────────────────────────────────────────
+# 🧠 Bootstrap system (multilib safe)
 # ─────────────────────────────────────────────
 bootstrap_system() {
   log_info "Checking multilib repo..."
@@ -47,11 +67,11 @@ bootstrap_system() {
     log_info "multilib already enabled"
   else
     log_warn "Enabling multilib repo..."
-    sudo sed -i '/^\[multilib\]/{s/^#//;n;s/^#//}' /etc/pacman.conf
+    sudo sed -i '/^\[multilib\]/{s/^#//;n;s/^#//}' /etc/pacman.conf || true
   fi
 
-  log_info "Syncing system..."
-  sudo pacman -Syu
+  log_info "Syncing package database..."
+  sudo pacman -Syu --noconfirm
 }
 
 bootstrap_system
@@ -61,9 +81,10 @@ bootstrap_system
 # ─────────────────────────────────────────────
 echo "🔥 No_Maidens_UwU Installer Initializing..."
 echo "⚙️ Dry run: $DRY_RUN_MODE"
+echo "🧠 Auto deps: $AUTO_DEPENDENCY"
 
 # ─────────────────────────────────────────────
-# Modules (ORDER MATTERS)
+# Modules
 # ─────────────────────────────────────────────
 MODULES=(
   "pacman.sh"
@@ -89,7 +110,9 @@ done
 # ─────────────────────────────────────────────
 run_all() {
   run_pacman
-  [[ "$SKIP_AUR" == false ]] && run_aur
+
+  [[ "$SKIP_AUR" == false ]] && run_aur || log_warn "Skipping AUR"
+
   run_dotfiles
   run_ime_setup
   run_gnomeext
