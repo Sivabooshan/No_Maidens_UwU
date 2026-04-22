@@ -77,16 +77,16 @@ source $ZSH/oh-my-zsh.sh
 eval "$(starship init zsh)"
 
 # History optimization
-HISTSIZE=1000
-SAVEHIST=1000
-setopt SHARE_HISTORY
-setopt HIST_IGNORE_DUPS
-setopt HIST_IGNORE_ALL_DUPS
-setopt HIST_FIND_NO_DUPS
+ HISTSIZE=1000
+ SAVEHIST=1000
+ setopt SHARE_HISTORY
+ setopt HIST_IGNORE_DUPS
+ setopt HIST_IGNORE_ALL_DUPS
+ setopt HIST_FIND_NO_DUPS
 
 # Better editor setup
-export EDITOR='nvim'
-export VISUAL='nvim'
+ export EDITOR='nvim'
+ export VISUAL='nvim'
 
 # User configuration
 
@@ -113,7 +113,7 @@ export VISUAL='nvim'
 # - $ZSH_CUSTOM/macos.zsh
 # For a full list of active aliases, run `alias`.
 #
-# Example aliases
+# Aliases
  alias zshrc="nvim ~/.zshrc"
  alias omz="nvim ~/.oh-my-zsh"
  alias open="xdg-open"
@@ -128,3 +128,15 @@ export VISUAL='nvim'
  alias tkw="tmux kill-window -t"
  alias tkp="tmux kill-pane -t"
  alias tkill="tmux kill-server"
+
+# Fcitx5 Japanese input setup
+ export GTK_IM_MODULE=fcitx
+ export QT_IM_MODULE=fcitx
+ export XMODIFIERS=@im=fcitx
+ export SDL_IM_MODULE=fcitx
+. "/home/typpo_24/.deno/env"
+
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+export PATH="$HOME/.npm-global/bin:$HOME/.nvm/versions/node/v22.12.0/bin:$PATH"

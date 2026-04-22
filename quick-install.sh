@@ -5,9 +5,9 @@
 #=============================================================================
 # Author: typpo_24 (The Dotfile Pirate)
 # Description: Automated installation ritual for No_Maidens_UwU sacred configs
-# Version: 1.0 - "Project Megiddo"
+# Version: 1.0.11 - "Project Megiddo - Fixed Edition"
 # Repository: https://github.com/Sivabooshan/No_Maidens_UwU
-# License: MIT (Maidens-Inclusive Technology) # "NO" licence is not added in repo just thought of the name
+# License: MIT (Maidens-Inclusive Technology)
 # Last Modified: $(date +"%Y-%m-%d")
 # Blessing: "In the realm where no maidens dwell, these configurations shall serve thee well" ⚔️
 #=============================================================================
@@ -65,7 +65,7 @@ readonly WHITE='\033[1;37m'  # Divine Light
 readonly NC='\033[0m'        # Return to Mortal Realm
 
 # Sacred Version Information
-readonly SCRIPT_VERSION="1.0.10"
+readonly SCRIPT_VERSION="1.0.11"
 readonly SCRIPT_NAME="No Maidens UwU Sacred Installer"
 readonly SACRED_DATE="$(date +"%Y-%m-%d")"
 readonly PIRATE_CAPTAIN="typpo_24"
@@ -175,9 +175,9 @@ run_sacred_diagnostics() {
     echo "  ❌ Ethereal networks severed"
   fi
 
-  # Essential artifacts (only what's needed to START the ritual)
+  # Essential artifacts (including zsh and stow now)
   echo -e "\n${CYAN}🔧 ESSENTIAL ARTIFACTS:${NC}"
-  local essential_tools=("git" "curl")
+  local essential_tools=("git" "curl" "zsh" "stow")
   local missing_tools=()
 
   for tool in "${essential_tools[@]}"; do
@@ -273,9 +273,9 @@ display_sacred_help() {
   echo -e "${GREEN}  --skip-aur${NC}          Skip AUR package installation"
   echo
   echo -e "${WHITE}🏴‍☠️ SACRED TREASURES BESTOWED:${NC}"
-  echo -e "${PURPLE}  🎭 eww, ⚡ fastfetch, 👻 ghostty, 🖼️ gthumb, 🪟 hyprland${NC}"
+  echo -e "${PURPLE}  🎭 quickshell, ⚡ fastfetch, 👻 ghostty, 🖼️ gthumb, 🪟 hyprland${NC}"
   echo -e "${PURPLE}  📜 okular, 🛡️ proton-vpn, 🌊 qbittorrent, ⭐ starship${NC}"
-  echo -e "${PURPLE}  🔗 stow, 📱 telegram-desktop, 🖥️ tmux, 💬 zapzap${NC}"
+  echo -e "${PURPLE}  🔗 stow, 📱 telegram-desktop, 🖥️ tmux, 💬 zapzap, 🐚 zsh${NC}"
   echo
   echo -e "${RED}❌ FORBIDDEN: sudo ./quick-install.sh${NC}"
   echo -e "${GREEN}✅ SACRED WAY: ./quick-install.sh${NC}"
@@ -392,7 +392,7 @@ summon_essential_artifacts() {
   fi
 
   local missing_artifacts=()
-  local essential_tools=("git" "curl")
+  local essential_tools=("git" "curl" "zsh" "stow")
 
   for tool in "${essential_tools[@]}"; do
     if ! command -v "$tool" &>/dev/null; then
@@ -457,7 +457,7 @@ ritual_of_paru_summoning() {
   # Ensure base-devel is present for the ritual
   sudo pacman -S --needed --noconfirm base-devel
 
-  # Clone with plain URL (no markdown formatting)
+  # Clone with correct URL (FIXED!)
   git clone https://aur.archlinux.org/paru.git
   cd paru
   makepkg -si --noconfirm
@@ -489,7 +489,7 @@ create_backup_sanctuary() {
     "$HOME/.config/tmux"
     "$HOME/.config/ghostty"
     "$HOME/.config/starship.toml"
-    "$HOME/.config/eww"
+    "$HOME/.config/quickshell"
   )
 
   local artifacts_preserved=0
@@ -549,6 +549,12 @@ summon_oh_my_zsh() {
   if [[ "$DRY_RUN_MODE" == "true" ]]; then
     celebrate_victory "DRY RUN: Would summon Oh My Zsh magic"
     return 0
+  fi
+
+  # Verify zsh is installed before proceeding
+  if ! command -v zsh &>/dev/null; then
+    cry_of_despair "Zsh must be installed before Oh My Zsh can be summoned"
+    exit 1
   fi
 
   if [[ -d "$HOME/.oh-my-zsh" ]]; then
@@ -616,11 +622,11 @@ acquire_aur_treasures() {
     return 0
   fi
 
-  # COMPLETE LIST: All 17 sacred treasures
+  # COMPLETE LIST: Sacred treasures
   local sacred_treasures=(
     "calibre|The digital tome keeper and novel realm guardian"
     "entr|The ever-watching eye that empowers tmux-autoreload's magic"
-    "eww|The Widget Weaver of Wonders"
+    "quickshell|The Widget Weaver of Wonders"
     "fastfetch|The Swift System Herald"
     "ghostty|Terminal of the Spirits"
     "gthumb|The Image Realm Guardian"
@@ -630,7 +636,6 @@ acquire_aur_treasures() {
     "qbittorrent|The Torrent Tide Controller"
     "stacher7|The modern video downloader GUI"
     "starship|The Cosmic Prompt Navigator"
-    "stow|The Symlink Alchemist"
     "telegram-desktop|The Encrypted Message Mystic"
     "yt-dlp|The powerful video download core"
     "tmux|The Session Multiplier"
@@ -791,7 +796,7 @@ begin_sacred_ritual() {
     echo "• 💾 Existing configurations shall be preserved but may face transformation"
     echo "• ⏰ AUR treasure acquisition may require patience of mortal hours"
     echo "• 🔄 Thou may need to restart thy terminal/session after the ritual's completion"
-    echo "• 🎯 EWW widgets work only in Wayland realms (Hyprland recommended)"
+    echo "• 🎯 Quickshell widgets work only in Wayland realms (Hyprland recommended)"
     echo
     echo -e "${PURPLE}\"In the realm where no maidens dwell, these configurations shall serve thee well\" ⚔️${NC}"
     echo

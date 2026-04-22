@@ -73,7 +73,6 @@ Ensure these sacred tools are present in thy digital armory:
 |----------|---------|-------------|
 |**📚Calibre**|The digital tome keeper and novel realm guardian| ⭐⭐⭐⭐ |
 |**👁️Entr**|The ever-watching eye that empowers tmux-autoreload's magic| ⭐⭐⭐ |
-|**🎭Eww**|The widget weaver of wonders| ⭐⭐⭐⭐ |
 |**⚡FastFetch**|The swift system herald| ⭐⭐⭐ |
 |**👻Ghostty**|Terminal of the spirits| ⭐⭐⭐⭐ |
 |**🖼️Gthumb**|The image realm guardian| ⭐⭐⭐ |
@@ -81,6 +80,7 @@ Ensure these sacred tools are present in thy digital armory:
 |**📜Okular**|The document scroll master| ⭐⭐⭐⭐ |
 |**🛡️Proton VPN**|The privacy shield enchanter| ⭐⭐⭐⭐⭐ |
 |**🌊qBittorrent**|The torrent tide controller| ⭐⭐⭐⭐ |
+|**🎭Quickshell**|The widget weaver of wonders| ⭐⭐⭐⭐ |
 |**📥Stacher7**|The modern video downloader GUI| ⭐⭐⭐⭐ |
 |**⭐Starship**|The cosmic prompt navigator| ⭐⭐⭐⭐ |
 |**🔗Stow**|The symlink alchemist| ⭐⭐⭐⭐⭐ |
@@ -88,28 +88,34 @@ Ensure these sacred tools are present in thy digital armory:
 |**⏬Yt-dlp**|The powerful video download core| ⭐⭐⭐⭐⭐ |
 |**🖥️TMUX**|The session multiplier| ⭐⭐⭐⭐ |
 |**💬ZapZap**|The WhatsApp whisper conduit| ⭐⭐⭐ |
+|**🐚Zsh**|The mystical shell of infinite power| ⭐⭐⭐⭐⭐ |
 
 **Summon them all with a single incantation:**
 
 ```bash
-paru -S calibre entr eww fastfetch ghostty gthumb hyprland okular proton-vpn-gtk-app qbittorrent stacher7 starship stow telegram-desktop tmux yt-dlp zapzap
+paru -S calibre entr fastfetch ghostty gthumb hyprland okular proton-vpn-gtk-app qbittorrent quickshell stacher7 starship stow telegram-desktop tmux yt-dlp zapzap zsh
 ```
 
 ## ⚠ Ancient Wisdom & Compatibility Scrolls
 
-### 🔮 EWW Widget Magic Disclaimer:
-Beware, noble adventurer! The mystical **eww widgets** contained within these sacred dotfiles are enchanted to work their magic **ONLY** within specific realms:
+### 🔮 Quickshell Widget Magic Disclaimer:
+Beware, noble adventurer! The mystical **quickshell widgets** contained within these sacred dotfiles are enchanted to work their magic **ONLY** within specific realms:
 
 #### ✅ **Blessed Territories** (Full Power):
 - **🪟 Hyprland** (Recommended realm of choice)
-- **🌊 Sway** and other wlroots compositors  
+- **🌊 Sway** and other wlroots compositors
 - **🌀 River**, **🌪️ Wayfire** compositors
 - **🔷 KDE Plasma** (Wayland) with proper configuration
+- **⚡ Niri** and other modern Wayland compositors
 
 #### ❌ **Cursed Lands** (Widget Magic Forbidden):
 - **🚫 GNOME** (Wayland) - *Layer shell protocol not supported*
 - **🚫 Most traditional desktop environments** on Wayland
-- **⚠ X11 environments** (limited widget support)
+
+#### 🔧 **Partial Magic Realms** (Limited Powers):
+
+- 📟 **X11 Desktop Environments** - QuickShell works but cannot anchor widgets to screen edges like true Wayland magic
+
 
 #### 🛡 **Universal Configurations** (Work Everywhere):
 *Fear not! All other configurations work universally across all realms!* ✨
@@ -119,6 +125,8 @@ Beware, noble adventurer! The mystical **eww widgets** contained within these sa
 - **Ghostty** terminal settings
 - **Git** configuration
 - **FastFetch** system information
+
+⚡ QuickShell's Qt Magic: QuickShell harnesses the power of QtQuick and QML, offering superior performance and hot-reloading capabilities, but faces the  ancient curse of layer shell protocol limitations in GNOME's domain.
 
 ## 🧙 The Great Zsh Transformation
 
@@ -196,7 +204,7 @@ Add these to `~/.config/hypr/hyprland.conf`:
 
 ### Essential daemons and applications:
 
-exec-once = eww daemon && eww open countdown_window
+exec-once = quickshell
 
 ## ⌨ Mystical Keybindings
 
@@ -251,7 +259,7 @@ stow . # Restow to update symlinks
 Absolutely! Edit the respective config files:
 - **Terminal**: `~/.config/ghostty/config`
 - **Prompt**: `~/.config/starship.toml`
-- **Widgets**: `~/.config/eww/eww.scss`
+- **Widgets**: `~/.config/quickshell/`
 
 ### **💾 "Will this overwrite my existing configs?"**
 Stow will warn about conflicts. Always backup your configs first:
@@ -271,10 +279,11 @@ cp -r ~/.config/{important-app} ~/.config/backup/
 ## 🏆 Hall of Fame (Acknowledgments)
 
 These legendary warriors provided inspiration and code:
-- **Hyprland Team** - Architects of the ultimate compositor  
+- **Hyprland Team** - Architects of the ultimate compositor
 - **Starship Team** - Cosmic prompt engineers
 - **Oh My Zsh Community** - Shell enhancement wizards
-- **ElKowar** - Creator of the mighty EWW widgets
+- **Outfoxxed** - Creator of the mighty QuickShell QtQuick toolkit
+- **QT Team** - Masters of the QtQuick/QML framework
 - **Grip** - The markdown preview sorcerers
 
 ## 🎯 Quick Start for the Impatient
