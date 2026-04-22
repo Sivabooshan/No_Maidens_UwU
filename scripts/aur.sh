@@ -15,6 +15,8 @@ AUR_PKGS=(
   "Memento:memento"
   "Telegram Downloader:tdl"
   "Minecraft:sklauncher"
+  "VS Code:visual-studio-code-bin"
+  "Steam:steam"
 )
 
 AUR_TOTAL=${#AUR_PKGS[@]}
