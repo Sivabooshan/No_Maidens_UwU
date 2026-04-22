@@ -28,9 +28,9 @@ run_ime_setup() {
   add_var "INPUT_METHOD" "fcitx5"
 
   if [[ "$updated" == true ]]; then
-    ok "Fcitx5 environment.d configured"
+    log_ok "Fcitx5 environment.d configured"
     echo "⚠️ Log out and log in required"
   else
-    ok "Fcitx5 IME already configured (environment.d)"
+    log_ok "Fcitx5 IME already configured (environment.d)"
   fi
 }

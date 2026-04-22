@@ -47,6 +47,11 @@ log() {
   echo "[$(date '+%H:%M:%S')] $*" | tee -a "$LOG_FILE"
 }
 
+log_info()  { echo -e "${BLUE}::${NC} $1"; }
+log_warn()  { echo -e "${YELLOW}!${NC} $1"; }
+log_error() { echo -e "${RED}✗${NC} $1" >&2; }
+log_ok()    { echo -e "${GREEN}✓${NC} $1"; }
+
 checkpoint() { echo -e "${BLUE}::${NC} $1"; }
 warning() { echo -e "${YELLOW}!${NC} $1"; }
 error() { echo -e "${RED}✗${NC} $1" >&2; }

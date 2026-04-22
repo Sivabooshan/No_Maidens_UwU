@@ -12,8 +12,8 @@ install_ext() {
   checkpoint "Installing $name"
 
   dry bash -c "$cmd" &&
-    victory "$name installed" ||
-    error "$name failed"
+    log_ok "$name installed" ||
+    log_error "$name failed"
 }
 
 run_gnomeext() {

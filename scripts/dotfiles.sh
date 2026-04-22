@@ -11,30 +11,30 @@ backup() {
   [[ -e ~/.zshrc ]] && cp ~/.zshrc "$b/"
   [[ -e ~/.tmux.conf ]] && cp ~/.tmux.conf "$b/"
 
-  victory "Backup created"
+  log_ok "Backup created"
 }
 
 clone() {
   [[ -d "$DIR" ]] && {
-    warning "already exists"
+    log_warn "already exists"
     return
   }
 
-  dry git clone "$REPO" "$DIR" && victory "cloned"
+  dry git clone "$REPO" "$DIR" && log_ok "cloned"
 }
 
 stow_apply() {
   cd "$DIR" || return
 
   if [[ "$FORCE_MODE" == "true" ]]; then
-    dry stow --adopt . && victory "stow applied (force)"
+    dry stow --adopt . && log_ok "stow applied (force)"
   else
-    dry stow . && victory "stow applied" || warn "stow conflict skipped"
+    dry stow . && log_ok "stow applied" || log_warn "stow conflict skipped"
   fi
 }
 
 run_dotfiles() {
-  checkpoint "Dotfiles setup"
+  log_info "Dotfiles setup"
   backup
   clone
   stow_apply
