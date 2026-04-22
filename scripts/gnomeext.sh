@@ -20,7 +20,7 @@ install_ext() {
 
   log_info "Installing $name"
 
-  if dry "$func"; then
+  if dry bash -c "set -e; $func"; then
     log_ok "$name installed"
   else
     log_error "$name failed"
@@ -29,11 +29,13 @@ install_ext() {
 }
 
 run_gnomeext() {
+
   mkdir -p "$EXT"
 
   # ─────────────────────────────
   # Blur My Shell
   # ─────────────────────────────
+
   install_ext "Blur My Shell" '
     tmp=$(mktemp -d)
     git clone https://github.com/aunetx/blur-my-shell "$tmp"
@@ -44,6 +46,7 @@ run_gnomeext() {
   # ─────────────────────────────
   # Clipboard Indicator (FIXED PATH)
   # ─────────────────────────────
+
   install_ext "Clipboard Indicator" '
     tmp=$(mktemp -d)
     git clone https://github.com/Tudmotu/gnome-shell-extension-clipboard-indicator.git "$tmp"
@@ -60,6 +63,7 @@ run_gnomeext() {
   # ─────────────────────────────
   # AppIndicator (FIXED deps check)
   # ─────────────────────────────
+
   install_ext "AppIndicator" '
     need_cmd meson || exit 1
     need_cmd ninja || exit 1
@@ -79,6 +83,7 @@ run_gnomeext() {
   # ─────────────────────────────
   # Internet Speed Meter
   # ─────────────────────────────
+
   install_ext "Internet Speed Meter" '
     tmp=$(mktemp -d)
     git clone https://github.com/AlShakib/InternetSpeedMeter.git "$tmp"
@@ -89,6 +94,7 @@ run_gnomeext() {
   # ─────────────────────────────
   # Weekly Commits (FIXED structure)
   # ─────────────────────────────
+
   install_ext "Weekly Commits" '
     tmp=$(mktemp -d)
     git clone https://github.com/funinkina/weekly-commits.git "$tmp"
@@ -106,6 +112,7 @@ run_gnomeext() {
   # ─────────────────────────────
   # Kimpanel (FIXED deps check)
   # ─────────────────────────────
+
   install_ext "Kimpanel" '
     need_cmd cmake || exit 1
 
@@ -121,7 +128,8 @@ run_gnomeext() {
   # ─────────────────────────────
   # FINAL FAILURE REPORT
   # ─────────────────────────────
-  if (( ${#FAILED_EXTENSIONS[@]} > 0 )); then
+
+  if ((${#FAILED_EXTENSIONS[@]} > 0)); then
     log_warn "Some GNOME extensions failed:"
     for f in "${FAILED_EXTENSIONS[@]}"; do
       echo "  - $f"
@@ -134,6 +142,7 @@ run_gnomeext() {
 # ─────────────────────────────
 # Standalone execution support
 # ─────────────────────────────
+
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
   run_gnomeext
 fi
