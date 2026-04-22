@@ -8,6 +8,28 @@ FAILED_EXTENSIONS=()
 
 mkdir -p "$EXT"
 
+# ─────────────────────────────────────────────
+# AUTO ENABLE FUNCTION
+# ─────────────────────────────────────────────
+enable_extension() {
+  local uuid="$1"
+
+  if command -v gnome-extensions &>/dev/null; then
+    gnome-extensions enable "$uuid" &>/dev/null && \
+      log_ok "Enabled $uuid" || \
+      log_warn "Could not enable $uuid"
+  fi
+}
+
+auto_enable_all_new() {
+  log_info "Auto-enabling installed extensions..."
+
+  # Enable everything safely (GNOME ignores duplicates)
+  for ext in $(gnome-extensions list 2>/dev/null); do
+    gnome-extensions enable "$ext" &>/dev/null || true
+  done
+}
+
 install_ext() {
   local name="$1"
   local func="$2"
@@ -137,6 +159,11 @@ run_gnomeext() {
   '
 
   echo
+
+  # ─────────────────────────────
+  # AUTO ENABLE ALL EXTENSIONS
+  # ─────────────────────────────
+  auto_enable_all_new
 
   # ─────────────────────────────
   # FINAL REPORT
