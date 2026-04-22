@@ -1,98 +1,97 @@
 #!/bin/bash
-
 set -euo pipefail
 
 # ─────────────────────────────────────────────
-# 🏴‍☠️ Main Orchestrator - No Maidens UwU
+# Root directory detection
 # ─────────────────────────────────────────────
-
-echo "🔥 MAIN.SH STARTED"
-
-# ─────────────────────────────────────────────
-# Load modules
-# ─────────────────────────────────────────────
-
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-
-source "$SCRIPT_DIR/core.sh"
-source "$SCRIPT_DIR/pacman.sh"
-source "$SCRIPT_DIR/aur.sh"
-source "$SCRIPT_DIR/dotfiles.sh"
-source "$SCRIPT_DIR/gnomeext.sh"
+INIT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # ─────────────────────────────────────────────
-# Flags
+# Core loader (singleton-safe)
 # ─────────────────────────────────────────────
+source "$INIT_DIR/core.sh"
 
+# ─────────────────────────────────────────────
+# Global flags (default values)
+# ─────────────────────────────────────────────
 DRY_RUN_MODE=false
 FORCE_MODE=false
 VERBOSE_MODE=false
 SKIP_AUR=false
 DIAGNOSE_MODE=false
 
-process_flags() {
-  while [[ $# -gt 0 ]]; do
-    case "$1" in
-    --dry-run)
-      DRY_RUN_MODE=true
-      ;;
-    --force)
-      FORCE_MODE=true
-      ;;
-    --verbose)
-      VERBOSE_MODE=true
-      ;;
-    --skip-aur)
-      SKIP_AUR=true
-      ;;
-    --diagnose)
-      DIAGNOSE_MODE=true
-      ;;
-    -h | --help)
-      echo "Usage: $0 [--dry-run] [--force] [--verbose] [--skip-aur] [--diagnose]"
-      exit 0
-      ;;
-    *)
-      echo "Unknown flag: $1"
-      exit 1
-      ;;
-    esac
+# ─────────────────────────────────────────────
+# CLI argument parser
+# ─────────────────────────────────────────────
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+  --dry-run)
+    DRY_RUN_MODE=true
     shift
-  done
-}
-
-process_flags "$@"
+    ;;
+  --force)
+    FORCE_MODE=true
+    shift
+    ;;
+  --verbose)
+    VERBOSE_MODE=true
+    shift
+    ;;
+  --skip-aur)
+    SKIP_AUR=true
+    shift
+    ;;
+  --diagnose)
+    DIAGNOSE_MODE=true
+    shift
+    ;;
+  *)
+    warn "Unknown flag: $1"
+    shift
+    ;;
+  esac
+done
 
 export DRY_RUN_MODE FORCE_MODE VERBOSE_MODE SKIP_AUR DIAGNOSE_MODE
 
 # ─────────────────────────────────────────────
-# Sanity check
+# Banner
 # ─────────────────────────────────────────────
-
-echo "📦 Modules loaded"
+echo "🔥 No_Maidens_UwU Installer Initializing..."
 echo "⚙️  Dry run: $DRY_RUN_MODE"
-echo "⚙️  Force: $FORCE_MODE"
 
 # ─────────────────────────────────────────────
-# Run diagnostics if requested
+# Module loader (order matters)
 # ─────────────────────────────────────────────
+MODULES=(
+  "pacman.sh"
+  "aur.sh"
+  "dotfiles.sh"
+  "gnomeext.sh"
+)
 
-if [[ "$DIAGNOSE_MODE" == "true" ]]; then
-  run_sacred_diagnostics
-  exit 0
-fi
+for module in "${MODULES[@]}"; do
+  path="$INIT_DIR/$module"
+
+  if [[ -f "$path" ]]; then
+    source "$path"
+    info "Loaded module: $module"
+  else
+    error "Missing module: $module"
+  fi
+done
 
 # ─────────────────────────────────────────────
-# Ensure main function exists
+# Execution pipeline
 # ─────────────────────────────────────────────
+run_all() {
+  run_pacman
+  [[ "$SKIP_AUR" == false ]] && run_aur
+  run_dotfiles
+  run_gnomeext
+}
 
-if ! declare -F begin_sacred_ritual >/dev/null; then
-  echo "❌ ERROR: begin_sacred_ritual not found (core.sh not loaded correctly)"
-  exit 1
-fi
+run_all
 
-# ─────────────────────────────────────────────
-# EXECUTION
-# ─────────────────────────────────────────────
-
-begin_sacred_ritual "$@"
+echo
+ok "🎉 All installation tasks completed"

@@ -1,6 +1,7 @@
 #!/bin/bash
 
-source "$(dirname "$0")/core.sh"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/core.sh"
 
 PACMAN_PKGS=(
   "GNU Stow:stow"
@@ -24,28 +25,17 @@ PACMAN_PKGS=(
   "Fcitx5 Core:fcitx5"
   "Fcitx5 GTK:fcitx5-gtk"
   "Fcitx5 Config:fcitx5-configtool"
-  "Mozc Japanese IME:fcitx5-mozc"
-  "Japanese Fonts:noto-fonts-cjk"
-  "MKVToolNix GUI:mkvtoolnix-gui"
-  "Hyprland Portal (Hyprland):xdg-desktop-portal-hyprland"
-  "Hyprland Portal (GTK):xdg-desktop-portal-gtk"
+  "Mozc IME:fcitx5-mozc"
+  "Noto Fonts:noto-fonts-cjk"
   "Neovim:neovim"
   "Fastfetch:fastfetch"
-  "Entr:entr"
-  "Hyprland:hyprland"
   "Flatpak:flatpak"
-  "Build Essentials:base-devel"
-  "CMake:cmake"
-  "jq:jq"
-  "Zip:zip"
-  "Gettext:gettext"
-  "Flameshot:flameshot"
 )
 
 PACMAN_TOTAL=${#PACMAN_PKGS[@]}
 PACMAN_CURRENT=0
 
-install_pacman() {
+install_pkg() {
   local name="$1"
   local pkg="$2"
 
@@ -57,21 +47,14 @@ install_pacman() {
   PACMAN_CURRENT=$((PACMAN_CURRENT + 1))
   show_progress "$PACMAN_CURRENT" "$PACMAN_TOTAL" "$name"
 
-  if dry sudo pacman -S --needed --noconfirm "$pkg"; then
-    ok "$name installed"
-  else
-    error "$name failed"
-  fi
+  dry sudo pacman -S --needed --noconfirm "$pkg" && ok "$name installed" || error "$name failed"
 }
 
 run_pacman() {
-  info "Installing Pacman packages"
+  info "Pacman install started"
 
   for entry in "${PACMAN_PKGS[@]}"; do
-    name="${entry%%:*}"
-    pkg="${entry##*:}"
-
-    install_pacman "$name" "$pkg"
+    install_pkg "${entry%%:*}" "${entry##*:}"
   done
 
   echo

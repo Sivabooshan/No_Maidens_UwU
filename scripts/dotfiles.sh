@@ -1,43 +1,42 @@
 #!/bin/bash
+source "$(dirname "${BASH_SOURCE[0]}")/core.sh"
 
-source "$(dirname "$0")/core.sh"
+REPO="https://github.com/Sivabooshan/No_Maidens_UwU.git"
+DIR="$HOME/No_Maidens_UwU"
 
-DOTFILES_REPO="https://github.com/Sivabooshan/No_Maidens_UwU.git"
-DOTFILES_DIR="$HOME/No_Maidens_UwU"
+backup() {
+  local b="$HOME/.config/backup-$(date +%s)"
+  mkdir -p "$b"
 
-backup_dotfiles() {
-  local backup="$HOME/.config/backup-$(date +%s)"
-  mkdir -p "$backup"
-
-  for f in .zshrc .tmux.conf .config; do
-    [[ -e "$HOME/$f" ]] && cp -r "$HOME/$f" "$backup/"
-  done
+  [[ -e ~/.zshrc ]] && cp ~/.zshrc "$b/"
+  [[ -e ~/.tmux.conf ]] && cp ~/.tmux.conf "$b/"
 
   ok "Backup created"
 }
 
-clone_dotfiles() {
-  if [[ -d "$DOTFILES_DIR" ]]; then
-    warn "Dotfiles exist"
+clone() {
+  [[ -d "$DIR" ]] && {
+    warn "already exists"
     return
-  fi
+  }
 
-  dry git clone "$DOTFILES_REPO" "$DOTFILES_DIR" &&
-    ok "Dotfiles cloned"
+  dry git clone "$REPO" "$DIR" && ok "cloned"
 }
 
-stow_dotfiles() {
-  cd "$DOTFILES_DIR" || return 1
+stow_apply() {
+  cd "$DIR" || return
 
-  dry stow . &&
-    ok "stow applied" ||
-    error "stow failed"
+  if [[ "$FORCE_MODE" == "true" ]]; then
+    dry stow --adopt . && ok "stow applied (force)"
+  else
+    dry stow . && ok "stow applied" || warn "stow conflict skipped"
+  fi
 }
 
 run_dotfiles() {
   info "Dotfiles setup"
-  backup_dotfiles
-  clone_dotfiles
-  stow_dotfiles
+  backup
+  clone
+  stow_apply
   echo
 }

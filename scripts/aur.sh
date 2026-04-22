@@ -1,26 +1,26 @@
 #!/bin/bash
 
-source "$(dirname "$0")/core.sh"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/core.sh"
 
 AUR_PKGS=(
   "Zen Browser:zen-browser-bin"
   "ProtonUp-Qt:protonup-qt"
   "Proton VPN:proton-vpn-gtk-app"
   "LocalSend:localsend-bin"
-  "YASP:yasp"
   "Stacher7:stacher7"
   "Pomodoro:gnome-shell-pomodoro"
-  "ZapZap:zapzap-git"
+  "ZapZap:zapzap"
   "Music Presence:music-presence-bin"
   "Memento:memento"
-  "Telegram Video Downloader:tdl"
+  "Telegram Downloader:tdl"
   "Minecraft:sklauncher"
 )
 
 AUR_TOTAL=${#AUR_PKGS[@]}
 AUR_CURRENT=0
 
-install_aur() {
+install_aur_pkg() {
   local name="$1"
   local pkg="$2"
 
@@ -32,26 +32,19 @@ install_aur() {
   AUR_CURRENT=$((AUR_CURRENT + 1))
   show_progress "$AUR_CURRENT" "$AUR_TOTAL" "$name"
 
-  if dry paru -S --needed --noconfirm "$pkg"; then
-    ok "$name installed"
-  else
-    error "$name failed"
-  fi
+  dry paru -S --needed --noconfirm "$pkg" && ok "$name installed" || error "$name failed"
 }
 
 run_aur() {
   command -v paru &>/dev/null || {
-    warn "paru not installed, skipping AUR"
+    warn "paru not found - skipping AUR"
     return
   }
 
-  info "Installing AUR packages"
+  info "AUR install started"
 
   for entry in "${AUR_PKGS[@]}"; do
-    name="${entry%%:*}"
-    pkg="${entry##*:}"
-
-    install_aur "$name" "$pkg"
+    install_aur_pkg "${entry%%:*}" "${entry##*:}"
   done
 
   echo
