@@ -7,10 +7,8 @@ fi
 CORE_SH_LOADED=1
 
 # ─────────────────────────────────────────────
-# Core shared engine (FIXED)
+# Colors (auto-disable if not TTY)
 # ─────────────────────────────────────────────
-
-# Colors
 if [ -t 1 ]; then
   RED='\033[0;31m'
   GREEN='\033[0;32m'
@@ -27,13 +25,15 @@ else
 fi
 
 # ─────────────────────────────────────────────
-# GLOBAL FLAGS
+# GLOBAL FLAGS (defaults if not set)
 # ─────────────────────────────────────────────
 : "${DRY_RUN_MODE:=false}"
 : "${FORCE_MODE:=false}"
 : "${VERBOSE_MODE:=false}"
 : "${SKIP_AUR:=false}"
 : "${DIAGNOSE_MODE:=false}"
+: "${AUTO_DEPENDENCY:=true}"
+: "${FULL_UPGRADE:=false}"
 
 # ─────────────────────────────────────────────
 # Logging
@@ -52,6 +52,13 @@ log_warn()  { echo -e "${YELLOW}!${NC} $1"; }
 log_error() { echo -e "${RED}✗${NC} $1" >&2; }
 log_ok()    { echo -e "${GREEN}✓${NC} $1"; }
 
+log_debug() {
+  [[ "$VERBOSE_MODE" == "true" ]] && echo -e "${DIM}[DEBUG] $*${NC}"
+}
+
+# ─────────────────────────────────────────────
+# Failure tracking
+# ─────────────────────────────────────────────
 FAILED_ITEMS=()
 
 record_fail() {
@@ -59,22 +66,18 @@ record_fail() {
 }
 
 # ─────────────────────────────────────────────
-# Backward compatibility aliases
+# Compatibility aliases
 # ─────────────────────────────────────────────
-
 info() { log_info "$1"; }
 warn() { log_warn "$1"; }
 error() { log_error "$1"; }
 ok() { log_ok "$1"; }
 
-checkpoint() { log_info "$1"; }
-victory() { log_ok "$1"; }
-celebrate_victory() { log_ok "$1"; }
-
 # ─────────────────────────────────────────────
 # Helpers
 # ─────────────────────────────────────────────
 
+# Dry-run wrapper
 dry() {
   if [[ "$DRY_RUN_MODE" == "true" ]]; then
     log_warn "[DRY RUN] $*"
@@ -83,6 +86,17 @@ dry() {
   "$@"
 }
 
+# Package check (reliable)
+is_pkg_installed() {
+  pacman -Q "$1" &>/dev/null
+}
+
+# Command check
+is_cmd_installed() {
+  command -v "$1" &>/dev/null
+}
+
+# Retry wrapper
 with_retry() {
   local n=1 max=3
   local out
@@ -93,7 +107,7 @@ with_retry() {
       return 0
     fi
 
-    log_warn "Retry $n/$max"
+    log_warn "Retry $n/$max: $*"
     sleep 2
     ((n++))
   done
@@ -102,6 +116,7 @@ with_retry() {
   return 1
 }
 
+# Progress display
 show_progress() {
   local cur=$1 total=$2 name=$3
   local pct=$((cur * 100 / total))
@@ -109,7 +124,7 @@ show_progress() {
 }
 
 # ─────────────────────────────────────────────
-# 🚀 CROSS-DISTRO DEPENDENCY RESOLVER (NEW)
+# Dependency resolver (optional stage)
 # ─────────────────────────────────────────────
 
 detect_pkg_manager() {
@@ -126,7 +141,7 @@ detect_pkg_manager() {
   fi
 }
 
-install_pkg() {
+install_dep() {
   local pkg="$1"
   local manager
   manager=$(detect_pkg_manager)
@@ -134,21 +149,15 @@ install_pkg() {
   log_info "Installing dependency: $pkg"
 
   case "$manager" in
-    paru)
-      paru -S --needed --noconfirm "$pkg"
-      ;;
-    yay)
-      yay -S --needed --noconfirm "$pkg"
-      ;;
-    pacman)
-      sudo pacman -S --needed --noconfirm "$pkg"
-      ;;
+    paru) paru -S --needed --noconfirm "$pkg" ;;
+    yay) yay -S --needed --noconfirm "$pkg" ;;
+    pacman) sudo pacman -S --needed --noconfirm "$pkg" ;;
     apt)
       sudo apt update -y
       sudo apt install -y "$pkg"
       ;;
     *)
-      log_error "No supported package manager found"
+      log_error "No supported package manager"
       return 1
       ;;
   esac
@@ -158,47 +167,39 @@ check_and_install() {
   local cmd="$1"
   local pkg="${2:-$1}"
 
-  if command -v "$cmd" &>/dev/null; then
+  if is_cmd_installed "$cmd"; then
     log_ok "$cmd already installed"
     return 0
   fi
 
   log_warn "$cmd missing → installing ($pkg)"
-  install_pkg "$pkg" || {
+  install_dep "$pkg" || {
     log_error "Failed to install $pkg"
+    record_fail "dep:$pkg"
     return 1
   }
 }
 
 resolve_dependencies() {
-
   log_info "Running dependency resolver..."
 
   # Core tools
-  check_and_install git git
-  check_and_install make make
-  check_and_install cmake cmake
-  check_and_install meson meson
-  check_and_install ninja ninja
-  check_and_install jq jq
-  check_and_install zip zip
-  check_and_install unzip unzip
+  check_and_install git
+  check_and_install make
+  check_and_install cmake
+  check_and_install meson
+  check_and_install ninja
+  check_and_install jq
+  check_and_install zip
+  check_and_install unzip
 
   # GNOME tools
   check_and_install gnome-extensions gnome-shell
   check_and_install gnome-shell-extension-tool gnome-shell
 
   # utilities
-  check_and_install curl curl
-  check_and_install wget wget
+  check_and_install curl
+  check_and_install wget
 
   log_ok "Dependency resolution complete"
-}
-
-# ─────────────────────────────────────────────
-# REQUIRED: main entry stub
-# ─────────────────────────────────────────────
-begin_sacred_ritual() {
-  log_error "begin_sacred_ritual not implemented in core.sh (must be in main.sh)"
-  return 1
 }

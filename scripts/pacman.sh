@@ -75,6 +75,9 @@ PACMAN_PKGS=(
 PACMAN_TOTAL=${#PACMAN_PKGS[@]}
 PACMAN_CURRENT=0
 
+# ─────────────────────────────────────────────
+# Install a single entry
+# ─────────────────────────────────────────────
 install_pkg() {
   local name="$1"
   local pkgs="$2"
@@ -83,7 +86,7 @@ install_pkg() {
   show_progress "$PACMAN_CURRENT" "$PACMAN_TOTAL" "$name"
   printf "\n"
 
-  # Check ALL packages
+  # Check if ALL packages are installed
   local all_installed=true
   for p in $pkgs; do
     if ! pacman -Q "$p" &>/dev/null; then
@@ -94,8 +97,10 @@ install_pkg() {
 
   if $all_installed; then
     log_ok "$name already installed"
-    return
+    return 0
   fi
+
+  log_info "Installing $name"
 
   if dry sudo pacman -S --needed --noconfirm $pkgs; then
     log_ok "$name installed"
@@ -105,7 +110,45 @@ install_pkg() {
   fi
 }
 
+# ─────────────────────────────────────────────
+# Diagnose mode
+# ─────────────────────────────────────────────
+diagnose_pacman() {
+  log_info "Diagnosing pacman packages..."
+
+  for entry in "${PACMAN_PKGS[@]}"; do
+    local name="${entry%%|*}"
+    local pkgs="${entry##*|}"
+
+    local all_installed=true
+    for p in $pkgs; do
+      if ! pacman -Q "$p" &>/dev/null; then
+        all_installed=false
+        break
+      fi
+    done
+
+    if $all_installed; then
+      log_ok "$name installed"
+    else
+      log_warn "$name missing"
+    fi
+  done
+
+  echo
+  log_ok "Pacman diagnostics complete"
+}
+
+# ─────────────────────────────────────────────
+# Main runner
+# ─────────────────────────────────────────────
 run_pacman() {
+
+  if [[ "$DIAGNOSE_MODE" == "true" ]]; then
+    diagnose_pacman
+    return
+  fi
+
   log_info "Pacman install started"
 
   for entry in "${PACMAN_PKGS[@]}"; do

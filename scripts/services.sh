@@ -4,102 +4,107 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/core.sh"
 
 # ─────────────────────────────────────────────
-# USER SERVICES MANAGEMENT
+# Services list
+# Format: "Display Name|service-name|type"
+# type: system / user
 # ─────────────────────────────────────────────
+SERVICES=(
+  "Bluetooth|bluetooth|system"
+  "CUPS Printing|cups|system"
+  "Flatpak Portal|xdg-desktop-portal|user"
+  "PipeWire|pipewire|user"
+  "WirePlumber|wireplumber|user"
+)
 
-enable_user_service() {
-  local service="$1"
+# ─────────────────────────────────────────────
+# Check if service is enabled
+# ─────────────────────────────────────────────
+is_enabled() {
+  local svc="$1"
+  local type="$2"
 
-  if systemctl --user is-enabled "$service" &>/dev/null; then
-    log_ok "$service already enabled"
+  if [[ "$type" == "user" ]]; then
+    systemctl --user is-enabled "$svc" &>/dev/null
   else
-    dry systemctl --user enable "$service"
-    log_ok "$service enabled"
-  fi
-
-  dry systemctl --user start "$service"
-}
-
-restart_user_service() {
-  local service="$1"
-  log_info "Restarting $service"
-  dry systemctl --user restart "$service"
-}
-
-# ─────────────────────────────────────────────
-# SYSTEM SERVICES (sudo required)
-# ─────────────────────────────────────────────
-
-enable_system_service() {
-  local service="$1"
-
-  if systemctl is-enabled "$service" &>/dev/null; then
-    log_ok "$service already enabled"
-  else
-    dry sudo systemctl enable "$service"
-    log_ok "$service enabled"
-  fi
-
-  dry sudo systemctl start "$service"
-}
-
-# ─────────────────────────────────────────────
-# PIPEWIRE STACK (IMPORTANT)
-# ─────────────────────────────────────────────
-
-setup_pipewire() {
-  log_info "Configuring PipeWire stack"
-
-  enable_user_service pipewire.service
-  enable_user_service pipewire-pulse.service
-  enable_user_service wireplumber.service
-
-  restart_user_service pipewire
-  restart_user_service wireplumber
-
-  log_ok "PipeWire stack ready"
-}
-
-# ─────────────────────────────────────────────
-# GAMING SERVICES
-# ─────────────────────────────────────────────
-
-setup_gaming() {
-  log_info "Configuring gaming services"
-
-  enable_user_service gamemoded.service 2>/dev/null || true
-
-  log_ok "Gaming services ready"
-}
-
-# ─────────────────────────────────────────────
-# NVIDIA OPTIMIZATION (optional service hooks)
-# ─────────────────────────────────────────────
-
-setup_nvidia() {
-  log_info "Checking NVIDIA runtime"
-
-  if command -v nvidia-smi &>/dev/null; then
-    log_ok "NVIDIA detected"
-  else
-    log_warn "NVIDIA not detected"
+    systemctl is-enabled "$svc" &>/dev/null
   fi
 }
 
 # ─────────────────────────────────────────────
-# MAIN RUNNER
+# Enable service
 # ─────────────────────────────────────────────
+enable_service() {
+  local name="$1"
+  local svc="$2"
+  local type="$3"
 
+  log_info "Processing $name"
+
+  if is_enabled "$svc" "$type"; then
+    log_ok "$name already enabled"
+    return 0
+  fi
+
+  if [[ "$type" == "user" ]]; then
+    if dry systemctl --user enable --now "$svc"; then
+      log_ok "$name enabled (user)"
+    else
+      log_error "$name failed"
+      record_fail "service:$svc"
+    fi
+  else
+    if dry sudo systemctl enable --now "$svc"; then
+      log_ok "$name enabled (system)"
+    else
+      log_error "$name failed"
+      record_fail "service:$svc"
+    fi
+  fi
+}
+
+# ─────────────────────────────────────────────
+# Diagnose mode
+# ─────────────────────────────────────────────
+diagnose_services() {
+  log_info "Diagnosing services..."
+
+  for entry in "${SERVICES[@]}"; do
+    local name="${entry%%|*}"
+    local rest="${entry#*|}"
+    local svc="${rest%%|*}"
+    local type="${rest##*|}"
+
+    if is_enabled "$svc" "$type"; then
+      log_ok "$name enabled"
+    else
+      log_warn "$name disabled"
+    fi
+  done
+
+  echo
+  log_ok "Service diagnostics complete"
+}
+
+# ─────────────────────────────────────────────
+# Main runner
+# ─────────────────────────────────────────────
 run_services() {
-  setup_pipewire
-  setup_gaming
-  setup_nvidia
+
+  if [[ "$DIAGNOSE_MODE" == "true" ]]; then
+    diagnose_services
+    return
+  fi
+
+  log_info "Service setup started"
+
+  for entry in "${SERVICES[@]}"; do
+    local name="${entry%%|*}"
+    local rest="${entry#*|}"
+    local svc="${rest%%|*}"
+    local type="${rest##*|}"
+
+    enable_service "$name" "$svc" "$type"
+  done
+
+  echo
 }
-
-# ─────────────────────────────────────────────
-# ENTRYPOINT
-# ─────────────────────────────────────────────
-
-if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
-  run_services
-fi
