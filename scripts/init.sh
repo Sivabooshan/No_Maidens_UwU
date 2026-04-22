@@ -149,7 +149,7 @@ run_all() {
   run_dotfiles
   run_ime_setup
   run_gnomeext
-  run_services
+  # run_services
 }
 
 run_all
