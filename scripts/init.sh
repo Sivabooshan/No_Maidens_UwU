@@ -12,6 +12,16 @@ INIT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$INIT_DIR/core.sh"
 
 # ─────────────────────────────────────────────
+# 🔧 Bootstrap system setup (multilib + sync)
+# ─────────────────────────────────────────────
+echo "🔧 Enabling multilib repo (if not already enabled)..."
+
+sudo sed -i '/^\[multilib\]/{s/^#//;n;s/^#//}' /etc/pacman.conf
+
+echo "🔄 Syncing package databases and updating system..."
+sudo pacman -Syyu
+
+# ─────────────────────────────────────────────
 # Global flags (default values)
 # ─────────────────────────────────────────────
 DRY_RUN_MODE=false
