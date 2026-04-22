@@ -47,10 +47,10 @@ log() {
   echo "[$(date '+%H:%M:%S')] $*" | tee -a "$LOG_FILE"
 }
 
-info() { echo -e "${BLUE}::${NC} $1"; }
-warn() { echo -e "${YELLOW}!${NC} $1"; }
+checkpoint() { echo -e "${BLUE}::${NC} $1"; }
+warning() { echo -e "${YELLOW}!${NC} $1"; }
 error() { echo -e "${RED}✗${NC} $1" >&2; }
-ok() { echo -e "${GREEN}✓${NC} $1"; }
+celebrate_victory() { echo -e "${GREEN}✓${NC} $1"; }
 
 # ─────────────────────────────────────────────
 # Helpers
