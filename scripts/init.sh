@@ -79,12 +79,31 @@ ensure_system_tools() {
 bootstrap_system() {
   log_info "Checking multilib repo..."
 
+  # Case 1: already enabled
   if grep -q "^\[multilib\]" /etc/pacman.conf; then
     log_info "multilib already enabled"
-  else
+
+  # Case 2: commented → enable it
+  elif grep -q "^#\[multilib\]" /etc/pacman.conf; then
     log_warn "Enabling multilib repo..."
-    sudo sed -i '/^\[multilib\]/{s/^#//;n;s/^#//}' /etc/pacman.conf || true
+
+    dry sudo sed -i '/^#\[multilib\]/,/^#Include/ s/^#//' /etc/pacman.conf
+
+    # 🔎 Verify after change
+    if grep -q "^\[multilib\]" /etc/pacman.conf; then
+      log_ok "multilib enabled successfully"
+    else
+      log_error "failed to enable multilib"
+      record_fail "multilib"
+    fi
+
+  # Case 3: section missing entirely
+  else
+    log_error "multilib section not found in pacman.conf"
+    record_fail "multilib missing"
   fi
+
+  # ─────────────────────────────────────────────
 
   if [[ "$FULL_UPGRADE" == "true" ]]; then
     log_info "Running full system upgrade..."
