@@ -50,7 +50,7 @@ log() {
 checkpoint() { echo -e "${BLUE}::${NC} $1"; }
 warning() { echo -e "${YELLOW}!${NC} $1"; }
 error() { echo -e "${RED}✗${NC} $1" >&2; }
-celebrate_victory() { echo -e "${GREEN}✓${NC} $1"; }
+victory() { echo -e "${GREEN}✓${NC} $1"; }
 
 # ─────────────────────────────────────────────
 # Helpers
@@ -58,7 +58,7 @@ celebrate_victory() { echo -e "${GREEN}✓${NC} $1"; }
 
 dry() {
   if [[ "$DRY_RUN_MODE" == "true" ]]; then
-    warn "[DRY RUN] $*"
+    warning "[DRY RUN] $*"
     return 0
   fi
   "$@"
@@ -77,7 +77,7 @@ with_retry() {
       echo "$out"
       return 0
     fi
-    warn "Retry $n/$max..."
+    warning "Retry $n/$max..."
     sleep 2
     ((n++))
   done

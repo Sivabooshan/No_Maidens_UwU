@@ -41,18 +41,18 @@ install_pkg() {
   local pkg="$2"
 
   if is_installed "$pkg"; then
-    ok "$name already installed"
+    victory "$name already installed"
     return
   fi
 
   PACMAN_CURRENT=$((PACMAN_CURRENT + 1))
   show_progress "$PACMAN_CURRENT" "$PACMAN_TOTAL" "$name"
 
-  dry sudo pacman -S --needed --noconfirm "$pkg" && ok "$name installed" || error "$name failed"
+  dry sudo pacman -S --needed --noconfirm "$pkg" && victory "$name installed" || error "$name failed"
 }
 
 run_pacman() {
-  info "Pacman install started"
+  checkpoint "Pacman install started"
 
   for entry in "${PACMAN_PKGS[@]}"; do
     install_pkg "${entry%%:*}" "${entry##*:}"

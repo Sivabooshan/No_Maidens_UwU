@@ -41,16 +41,16 @@ source "$INIT_DIR/core.sh"
 # 🧠 Bootstrap system (idempotent multilib)
 # ─────────────────────────────────────────────
 bootstrap_system() {
-  info "Checking multilib repo..."
+  checkpoint "Checking multilib repo..."
 
   if grep -q "^\[multilib\]" /etc/pacman.conf; then
-    info "multilib already enabled"
+    checkpoint "multilib already enabled"
   else
-    warn "Enabling multilib repo..."
+    warning "Enabling multilib repo..."
     sudo sed -i '/^\[multilib\]/{s/^#//;n;s/^#//}' /etc/pacman.conf
   fi
 
-  info "Syncing system..."
+  checkpoint "Syncing system..."
   sudo pacman -Syu
 }
 
@@ -78,7 +78,7 @@ for module in "${MODULES[@]}"; do
 
   if [[ -f "$path" ]]; then
     source "$path"
-    info "Loaded module: $module"
+    checkpoint "Loaded module: $module"
   else
     error "Missing module: $module"
   fi
@@ -98,4 +98,4 @@ run_all() {
 run_all
 
 echo
-ok "🎉 All installation tasks completed"
+victory "🎉 All installation tasks completed"

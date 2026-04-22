@@ -9,10 +9,10 @@ install_ext() {
   local name="$1"
   local cmd="$2"
 
-  info "Installing $name"
+  checkpoint "Installing $name"
 
   dry bash -c "$cmd" &&
-    ok "$name installed" ||
+    victory "$name installed" ||
     error "$name failed"
 }
 

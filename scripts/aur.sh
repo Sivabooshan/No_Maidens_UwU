@@ -25,23 +25,23 @@ install_aur_pkg() {
   local pkg="$2"
 
   if is_installed "$pkg"; then
-    ok "$name already installed"
+    victory "$name already installed"
     return
   fi
 
   AUR_CURRENT=$((AUR_CURRENT + 1))
   show_progress "$AUR_CURRENT" "$AUR_TOTAL" "$name"
 
-  dry paru -S --needed --noconfirm "$pkg" && ok "$name installed" || error "$name failed"
+  dry paru -S --needed --noconfirm "$pkg" && victory "$name installed" || error "$name failed"
 }
 
 run_aur() {
   command -v paru &>/dev/null || {
-    warn "paru not found - skipping AUR"
+    warning "paru not found - skipping AUR"
     return
   }
 
-  info "AUR install started"
+  checkpoint "AUR install started"
 
   for entry in "${AUR_PKGS[@]}"; do
     install_aur_pkg "${entry%%:*}" "${entry##*:}"
