@@ -3,20 +3,23 @@
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/core.sh"
 
+# ─────────────────────────────────────────────
+# AUR PACKAGE LIST
+# ─────────────────────────────────────────────
 AUR_PKGS=(
-  "Zen Browser:zen-browser-bin"
-  "ProtonUp-Qt:protonup-qt"
-  "Proton VPN:proton-vpn-gtk-app"
-  "LocalSend:localsend-bin"
-  "Stacher7:stacher7"
-  "Pomodoro:gnome-shell-pomodoro"
-  "ZapZap:zapzap"
-  "Music Presence:music-presence-bin"
-  "Memento:memento"
-  "Telegram Downloader:tdl"
-  "Minecraft:sklauncher"
-  "VS Code:visual-studio-code-bin"
-  "Steam:steam"
+  "Zen Browser|zen-browser-bin"
+  "ProtonUp-Qt|protonup-qt"
+  "Proton VPN|proton-vpn-gtk-app"
+  "LocalSend|localsend-bin"
+  "Stacher7|stacher7"
+  "Pomodoro|gnome-shell-pomodoro"
+  "ZapZap|zapzap"
+  "Music Presence|music-presence-bin"
+  "Memento|memento"
+  "Telegram Downloader|tdl"
+  "Minecraft|sklauncher"
+  "VS Code|visual-studio-code-bin"
+  "Steam|steam"
 )
 
 AUR_TOTAL=${#AUR_PKGS[@]}
@@ -44,15 +47,15 @@ install_aur_pkg() {
 }
 
 run_aur() {
-  command -v paru &>/dev/null || {
-    log_warn "paru not found - skipping AUR"
+  if ! command -v paru &>/dev/null; then
+    log_warn "paru not found - skipping AUR installs"
     return
-  }
+  fi
 
   log_info "AUR install started"
 
   for entry in "${AUR_PKGS[@]}"; do
-    install_aur_pkg "${entry%%:*}" "${entry##*:}"
+    install_aur_pkg "${entry%%|*}" "${entry##*|}"
   done
 
   echo

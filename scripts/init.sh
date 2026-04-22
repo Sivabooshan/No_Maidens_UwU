@@ -92,6 +92,7 @@ MODULES=(
   "dotfiles.sh"
   "ime_setup.sh"
   "gnomeext.sh"
+  "services.sh"
 )
 
 for module in "${MODULES[@]}"; do
@@ -110,12 +111,11 @@ done
 # ─────────────────────────────────────────────
 run_all() {
   run_pacman
-
-  [[ "$SKIP_AUR" == false ]] && run_aur || log_warn "Skipping AUR"
-
+  run_aur
   run_dotfiles
   run_ime_setup
   run_gnomeext
+  run_services
 }
 
 run_all
