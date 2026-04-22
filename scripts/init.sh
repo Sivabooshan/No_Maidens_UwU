@@ -2,27 +2,12 @@
 set -euo pipefail
 
 # ─────────────────────────────────────────────
-# Root directory detection
+# Root directory
 # ─────────────────────────────────────────────
 INIT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # ─────────────────────────────────────────────
-# Core loader (singleton-safe)
-# ─────────────────────────────────────────────
-source "$INIT_DIR/core.sh"
-
-# ─────────────────────────────────────────────
-# 🔧 Bootstrap system setup (multilib + sync)
-# ─────────────────────────────────────────────
-echo "🔧 Enabling multilib repo (if not already enabled)..."
-
-sudo sed -i '/^\[multilib\]/{s/^#//;n;s/^#//}' /etc/pacman.conf
-
-echo "🔄 Syncing package databases and updating system..."
-sudo pacman -Syyu
-
-# ─────────────────────────────────────────────
-# Global flags (default values)
+# Global flags (DEFAULTS FIRST)
 # ─────────────────────────────────────────────
 DRY_RUN_MODE=false
 FORCE_MODE=false
@@ -31,52 +16,60 @@ SKIP_AUR=false
 DIAGNOSE_MODE=false
 
 # ─────────────────────────────────────────────
-# CLI argument parser
+# CLI parser (must come BEFORE modules load)
 # ─────────────────────────────────────────────
 while [[ $# -gt 0 ]]; do
   case "$1" in
-  --dry-run)
-    DRY_RUN_MODE=true
-    shift
-    ;;
-  --force)
-    FORCE_MODE=true
-    shift
-    ;;
-  --verbose)
-    VERBOSE_MODE=true
-    shift
-    ;;
-  --skip-aur)
-    SKIP_AUR=true
-    shift
-    ;;
-  --diagnose)
-    DIAGNOSE_MODE=true
-    shift
-    ;;
-  *)
-    warn "Unknown flag: $1"
-    shift
-    ;;
+  --dry-run) DRY_RUN_MODE=true ;;
+  --force) FORCE_MODE=true ;;
+  --verbose) VERBOSE_MODE=true ;;
+  --skip-aur) SKIP_AUR=true ;;
+  --diagnose) DIAGNOSE_MODE=true ;;
+  *) echo "⚠️ Unknown flag: $1" ;;
   esac
+  shift
 done
 
 export DRY_RUN_MODE FORCE_MODE VERBOSE_MODE SKIP_AUR DIAGNOSE_MODE
 
 # ─────────────────────────────────────────────
+# Core loader
+# ─────────────────────────────────────────────
+source "$INIT_DIR/core.sh"
+
+# ─────────────────────────────────────────────
+# 🧠 Bootstrap system (idempotent multilib)
+# ─────────────────────────────────────────────
+bootstrap_system() {
+  info "Checking multilib repo..."
+
+  if grep -q "^\[multilib\]" /etc/pacman.conf; then
+    info "multilib already enabled"
+  else
+    warn "Enabling multilib repo..."
+    sudo sed -i '/^\[multilib\]/{s/^#//;n;s/^#//}' /etc/pacman.conf
+  fi
+
+  info "Syncing system..."
+  sudo pacman -Syu
+}
+
+bootstrap_system
+
+# ─────────────────────────────────────────────
 # Banner
 # ─────────────────────────────────────────────
 echo "🔥 No_Maidens_UwU Installer Initializing..."
-echo "⚙️  Dry run: $DRY_RUN_MODE"
+echo "⚙️ Dry run: $DRY_RUN_MODE"
 
 # ─────────────────────────────────────────────
-# Module loader (order matters)
+# Modules (ORDER MATTERS)
 # ─────────────────────────────────────────────
 MODULES=(
   "pacman.sh"
   "aur.sh"
   "dotfiles.sh"
+  "ime_setup.sh"
   "gnomeext.sh"
 )
 
@@ -98,6 +91,7 @@ run_all() {
   run_pacman
   [[ "$SKIP_AUR" == false ]] && run_aur
   run_dotfiles
+  run_ime_setup
   run_gnomeext
 }
 

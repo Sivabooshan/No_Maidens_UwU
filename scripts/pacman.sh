@@ -4,6 +4,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/core.sh"
 
 PACMAN_PKGS=(
+  "Extension Manager:extension-manager"
   "GNU Stow:stow"
   "Tor Browser:torbrowser-launcher"
   "Discord:discord"
