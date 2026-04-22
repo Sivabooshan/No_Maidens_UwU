@@ -6,7 +6,7 @@ set -euo pipefail
 # Uses: ~/.config/environment.d (systemd user env)
 # ─────────────────────────────────────────────────────────────
 
-checkpoint "IME setup (Fcitx5 environment.d)"
+info "IME setup (Fcitx5 environment.d)"
 
 ENV_DIR="$HOME/.config/environment.d"
 ENV_FILE="$ENV_DIR/99-ime.conf"
