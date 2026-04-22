@@ -83,8 +83,16 @@ install_pkg() {
   show_progress "$PACMAN_CURRENT" "$PACMAN_TOTAL" "$name"
   printf "\n"
 
-  # check first package only (simple heuristic)
-  if is_installed "${pkgs%% *}"; then
+  # Check ALL packages
+  local all_installed=true
+  for p in $pkgs; do
+    if ! pacman -Q "$p" &>/dev/null; then
+      all_installed=false
+      break
+    fi
+  done
+
+  if $all_installed; then
     log_ok "$name already installed"
     return
   fi

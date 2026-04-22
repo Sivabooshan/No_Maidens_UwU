@@ -52,6 +52,12 @@ log_warn()  { echo -e "${YELLOW}!${NC} $1"; }
 log_error() { echo -e "${RED}✗${NC} $1" >&2; }
 log_ok()    { echo -e "${GREEN}✓${NC} $1"; }
 
+FAILED_ITEMS=()
+
+record_fail() {
+  FAILED_ITEMS+=("$1")
+}
+
 # ─────────────────────────────────────────────
 # Backward compatibility aliases
 # ─────────────────────────────────────────────
@@ -75,10 +81,6 @@ dry() {
     return 0
   fi
   "$@"
-}
-
-is_installed() {
-  command -v "$1" &>/dev/null || pacman -Q "$1" &>/dev/null
 }
 
 with_retry() {

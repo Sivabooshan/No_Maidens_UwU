@@ -33,7 +33,7 @@ install_aur_pkg() {
   show_progress "$AUR_CURRENT" "$AUR_TOTAL" "$name"
   printf "\n"
 
-  if is_installed "$pkg"; then
+  if pacman -Q "$pkg" &>/dev/null; then
     log_ok "$name already installed"
     return
   fi
@@ -47,9 +47,16 @@ install_aur_pkg() {
 }
 
 run_aur() {
-  if ! command -v paru &>/dev/null; then
-    log_warn "paru not found - skipping AUR installs"
+  if [[ "$SKIP_AUR" == "true" ]]; then
+    log_warn "Skipping AUR (flag enabled)"
     return
+  fi
+
+  if ! command -v paru &>/dev/null; then
+    log_warn "paru not found - installing..."
+
+    git clone https://aur.archlinux.org/paru.git /tmp/paru
+    (cd /tmp/paru && makepkg -si --noconfirm)
   fi
 
   log_info "AUR install started"

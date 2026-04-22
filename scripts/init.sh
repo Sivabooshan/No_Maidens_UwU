@@ -15,6 +15,7 @@ VERBOSE_MODE=false
 SKIP_AUR=false
 DIAGNOSE_MODE=false
 AUTO_DEPENDENCY=true
+FULL_UPGRADE=false
 
 # ─────────────────────────────────────────────
 # CLI parser
@@ -27,12 +28,13 @@ while [[ $# -gt 0 ]]; do
     --skip-aur) SKIP_AUR=true ;;
     --diagnose) DIAGNOSE_MODE=true ;;
     --no-auto-deps) AUTO_DEPENDENCY=false ;;
+    --full-upgrade) FULL_UPGRADE=true ;;
     *) echo "⚠️ Unknown flag: $1" ;;
   esac
   shift
 done
 
-export DRY_RUN_MODE FORCE_MODE VERBOSE_MODE SKIP_AUR DIAGNOSE_MODE AUTO_DEPENDENCY
+export DRY_RUN_MODE FORCE_MODE VERBOSE_MODE SKIP_AUR DIAGNOSE_MODE AUTO_DEPENDENCY FULL_UPGRADE
 
 # ─────────────────────────────────────────────
 # Core loader
@@ -40,7 +42,7 @@ export DRY_RUN_MODE FORCE_MODE VERBOSE_MODE SKIP_AUR DIAGNOSE_MODE AUTO_DEPENDEN
 source "$INIT_DIR/core.sh"
 
 # ─────────────────────────────────────────────
-# 🧠 Auto dependency bootstrap (pacman-first hybrid hook)
+# 🧠 Base system tools (required for bootstrap)
 # ─────────────────────────────────────────────
 ensure_system_tools() {
   log_info "Checking base system tools..."
@@ -48,17 +50,59 @@ ensure_system_tools() {
   local pkgs=("git" "base-devel")
 
   for pkg in "${pkgs[@]}"; do
-    if ! command -v "$pkg" &>/dev/null && ! pacman -Q "$pkg" &>/dev/null; then
+    if ! pacman -Q "$pkg" &>/dev/null; then
       log_warn "Missing $pkg → installing"
-      sudo pacman -S --needed --noconfirm "$pkg" || true
+      sudo pacman -S --needed --noconfirm "$pkg" || {
+        log_error "Failed to install $pkg"
+        record_fail "bootstrap:$pkg"
+      }
     fi
   done
 }
 
-ensure_system_tools
+# ─────────────────────────────────────────────
+# 🧠 Install paru (AUR helper)
+# ─────────────────────────────────────────────
+install_paru() {
+  if [[ "$SKIP_AUR" == "true" ]]; then
+    log_warn "Skipping paru install (AUR disabled)"
+    return
+  fi
+
+  if command -v paru &>/dev/null; then
+    log_ok "paru already installed"
+    return
+  fi
+
+  log_warn "paru not found → installing..."
+
+  tmp=$(mktemp -d)
+
+  if git clone https://aur.archlinux.org/paru.git "$tmp/paru"; then
+    (
+      cd "$tmp/paru" || exit 1
+      makepkg -si --noconfirm
+    ) || {
+      log_error "paru build failed"
+      record_fail "paru bootstrap"
+    }
+  else
+    log_error "paru clone failed"
+    record_fail "paru bootstrap"
+  fi
+
+  rm -rf "$tmp"
+
+  if command -v paru &>/dev/null; then
+    log_ok "paru installed"
+  else
+    log_error "paru installation failed"
+    record_fail "paru bootstrap"
+  fi
+}
 
 # ─────────────────────────────────────────────
-# 🧠 Bootstrap system (multilib safe)
+# 🧠 Bootstrap system (multilib + sync)
 # ─────────────────────────────────────────────
 bootstrap_system() {
   log_info "Checking multilib repo..."
@@ -70,10 +114,21 @@ bootstrap_system() {
     sudo sed -i '/^\[multilib\]/{s/^#//;n;s/^#//}' /etc/pacman.conf || true
   fi
 
-  log_info "Syncing package database..."
-  sudo pacman -Syu --noconfirm
+  if [[ "$FULL_UPGRADE" == "true" ]]; then
+    log_info "Running full system upgrade..."
+    sudo pacman -Syu --noconfirm
+  else
+    log_warn "Skipping full upgrade (use --full-upgrade to enable)"
+    log_info "Refreshing package database..."
+    sudo pacman -Sy --noconfirm
+  fi
 }
 
+# ─────────────────────────────────────────────
+# 🚀 BOOTSTRAP STAGE
+# ─────────────────────────────────────────────
+ensure_system_tools
+install_paru
 bootstrap_system
 
 # ─────────────────────────────────────────────
@@ -82,6 +137,7 @@ bootstrap_system
 echo "🔥 No_Maidens_UwU Installer Initializing..."
 echo "⚙️ Dry run: $DRY_RUN_MODE"
 echo "🧠 Auto deps: $AUTO_DEPENDENCY"
+echo "📦 Full upgrade: $FULL_UPGRADE"
 
 # ─────────────────────────────────────────────
 # Modules
@@ -103,6 +159,7 @@ for module in "${MODULES[@]}"; do
     log_info "Loaded module: $module"
   else
     log_error "Missing module: $module"
+    record_fail "module:$module"
   fi
 done
 
@@ -111,7 +168,13 @@ done
 # ─────────────────────────────────────────────
 run_all() {
   run_pacman
-  run_aur
+
+  if [[ "$SKIP_AUR" != "true" ]]; then
+    run_aur
+  else
+    log_warn "Skipping AUR stage"
+  fi
+
   run_dotfiles
   run_ime_setup
   run_gnomeext
@@ -119,6 +182,20 @@ run_all() {
 }
 
 run_all
+
+# ─────────────────────────────────────────────
+# Summary
+# ─────────────────────────────────────────────
+echo
+
+if (( ${#FAILED_ITEMS[@]} > 0 )); then
+  log_warn "Some tasks failed:"
+  for f in "${FAILED_ITEMS[@]}"; do
+    echo "  - $f"
+  done
+else
+  log_ok "All tasks completed successfully"
+fi
 
 echo
 log_ok "🎉 All installation tasks completed"
