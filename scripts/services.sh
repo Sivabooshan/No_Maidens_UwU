@@ -4,16 +4,12 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/core.sh"
 
 # ─────────────────────────────────────────────
-# Services list
-# Format: "Display Name|service-name|type"
-# type: system / user
+# Services list (SAFE MINIMAL SET)
+# Only system services that are NOT auto-managed
 # ─────────────────────────────────────────────
 SERVICES=(
   "Bluetooth|bluetooth|system"
   "CUPS Printing|cups|system"
-  "Flatpak Portal|xdg-desktop-portal|user"
-  "PipeWire|pipewire|user"
-  "WirePlumber|wireplumber|user"
 )
 
 # ─────────────────────────────────────────────
@@ -21,13 +17,7 @@ SERVICES=(
 # ─────────────────────────────────────────────
 is_enabled() {
   local svc="$1"
-  local type="$2"
-
-  if [[ "$type" == "user" ]]; then
-    systemctl --user is-enabled "$svc" &>/dev/null
-  else
-    systemctl is-enabled "$svc" &>/dev/null
-  fi
+  systemctl is-enabled "$svc" &>/dev/null
 }
 
 # ─────────────────────────────────────────────
@@ -36,29 +26,19 @@ is_enabled() {
 enable_service() {
   local name="$1"
   local svc="$2"
-  local type="$3"
 
   log_info "Processing $name"
 
-  if is_enabled "$svc" "$type"; then
+  if is_enabled "$svc"; then
     log_ok "$name already enabled"
     return 0
   fi
 
-  if [[ "$type" == "user" ]]; then
-    if dry systemctl --user enable --now "$svc"; then
-      log_ok "$name enabled (user)"
-    else
-      log_error "$name failed"
-      record_fail "service:$svc"
-    fi
+  if dry sudo systemctl enable --now "$svc"; then
+    log_ok "$name enabled"
   else
-    if dry sudo systemctl enable --now "$svc"; then
-      log_ok "$name enabled (system)"
-    else
-      log_error "$name failed"
-      record_fail "service:$svc"
-    fi
+    log_error "$name failed"
+    record_fail "service:$svc"
   fi
 }
 
@@ -70,11 +50,9 @@ diagnose_services() {
 
   for entry in "${SERVICES[@]}"; do
     local name="${entry%%|*}"
-    local rest="${entry#*|}"
-    local svc="${rest%%|*}"
-    local type="${rest##*|}"
+    local svc="${entry##*|}"
 
-    if is_enabled "$svc" "$type"; then
+    if systemctl is-enabled "$svc" &>/dev/null; then
       log_ok "$name enabled"
     else
       log_warn "$name disabled"
@@ -99,11 +77,9 @@ run_services() {
 
   for entry in "${SERVICES[@]}"; do
     local name="${entry%%|*}"
-    local rest="${entry#*|}"
-    local svc="${rest%%|*}"
-    local type="${rest##*|}"
+    local svc="${entry##*|}"
 
-    enable_service "$name" "$svc" "$type"
+    enable_service "$name" "$svc"
   done
 
   echo

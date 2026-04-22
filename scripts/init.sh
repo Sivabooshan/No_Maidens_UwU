@@ -3,6 +3,11 @@ set -euo pipefail
 
 INIT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
+if ! command -v pacman &>/dev/null; then
+  log_error "This script requires Arch Linux"
+  exit 1
+fi
+
 # ─────────────────────────────────────────────
 # Defaults
 # ─────────────────────────────────────────────
@@ -107,7 +112,10 @@ install_paru() {
     (
       cd "$tmp/paru" || exit 1
       dry makepkg -si --noconfirm
-    ) || record_fail "paru build"
+    ) || {
+      log_error "paru build failed"
+      record_fail "paru build"
+    }    
   else
     record_fail "paru clone"
   fi
@@ -194,7 +202,7 @@ else
   run_dotfiles
   run_ime_setup
   run_gnomeext
-  run_services
+  # run_services
 fi
 
 # ─────────────────────────────────────────────

@@ -79,6 +79,7 @@ PACMAN_CURRENT=0
 # Install a single entry
 # ─────────────────────────────────────────────
 install_pkg() {
+install_pkg() {
   local name="$1"
   local pkgs="$2"
 
@@ -86,9 +87,12 @@ install_pkg() {
   show_progress "$PACMAN_CURRENT" "$PACMAN_TOTAL" "$name"
   printf "\n"
 
+  # Convert to array safely
+  read -r -a pkg_array <<< "$pkgs"
+
   # Check if ALL packages are installed
   local all_installed=true
-  for p in $pkgs; do
+  for p in "${pkg_array[@]}"; do
     if ! pacman -Q "$p" &>/dev/null; then
       all_installed=false
       break
@@ -102,7 +106,7 @@ install_pkg() {
 
   log_info "Installing $name"
 
-  if dry sudo pacman -S --needed --noconfirm $pkgs; then
+  if dry sudo pacman -S --needed --noconfirm "${pkg_array[@]}"; then
     log_ok "$name installed"
   else
     log_error "$name failed"

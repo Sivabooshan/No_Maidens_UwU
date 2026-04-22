@@ -45,7 +45,7 @@ setup_fcitx_config() {
 
   local conf_dir="$HOME/.config/fcitx5"
 
-  if [[ -d "$conf_dir" && "$FORCE_MODE" != "true" ]]; then
+  if [[ -f "$conf_dir/profile" && "$FORCE_MODE" != "true" ]]; then
     log_warn "fcitx5 config exists (use --force to overwrite)"
     return 0
   fi
