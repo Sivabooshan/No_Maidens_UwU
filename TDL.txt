@@ -3,4 +3,4 @@
 [3/24] AUR or Pacman : "Package name"
 whant to install y/n line
 
-
+2) Add oh my zsh and its plugins
