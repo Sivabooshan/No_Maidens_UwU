@@ -7,6 +7,8 @@ PACMAN_PKGS=(
   "Meson:meson"
   "Ninja:ninja"
   "Cmake:cmake"
+  "Zip:zip"
+  "JQ:jq"
   "Extension Manager:extension-manager"
   "GNU Stow:stow"
   "Tor Browser:torbrowser-launcher"

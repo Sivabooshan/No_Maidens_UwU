@@ -119,6 +119,7 @@ run_gnomeext() {
   install_ext "Kimpanel" '
     command -v git >/dev/null || exit 1
     command -v cmake >/dev/null || exit 1
+    command -v zip >/dev/null || exit 1
 
     tmp=$(mktemp -d)
     git clone --depth=1 https://github.com/wengxt/gnome-shell-extension-kimpanel.git "$tmp"
