@@ -2,45 +2,51 @@
 set -euo pipefail
 
 # ─────────────────────────────────────────────────────────────
-# IME / Japanese Input Setup (Fcitx)
+# IME / Japanese Input Setup (Fcitx5 + Wayland-safe)
+# Uses: ~/.config/environment.d (systemd user env)
 # ─────────────────────────────────────────────────────────────
 
-# Assumes these helper functions exist from core.sh:
-# checkpoint, celebrate_victory
+checkpoint "IME setup (Fcitx5 environment.d)"
 
-checkpoint "IME setup"
+ENV_DIR="$HOME/.config/environment.d"
+ENV_FILE="$ENV_DIR/99-ime.conf"
 
-PAM_FILE="$HOME/.pam_environment"
-touch "$PAM_FILE"
+mkdir -p "$ENV_DIR"
 
 updated=false
 
-# GTK IME
-if ! grep -q '^GTK_IM_MODULE' "$PAM_FILE"; then
-  echo 'GTK_IM_MODULE=fcitx' >>"$PAM_FILE"
-  updated=true
-fi
+add_var() {
+  local key="$1"
+  local value="$2"
 
-# QT IME
-if ! grep -q '^QT_IM_MODULE' "$PAM_FILE"; then
-  echo 'QT_IM_MODULE=fcitx' >>"$PAM_FILE"
-  updated=true
-fi
+  if ! grep -q "^${key}=" "$ENV_FILE" 2>/dev/null; then
+    echo "${key}=${value}" >>"$ENV_FILE"
+    updated=true
+  fi
+}
 
-# X11 IME
-if ! grep -q '^XMODIFIERS' "$PAM_FILE"; then
-  echo 'XMODIFIERS=@im=fcitx' >>"$PAM_FILE"
-  updated=true
-fi
+# GTK apps
+add_var "GTK_IM_MODULE" "fcitx5"
 
-# SDL IME (games / emulators support)
-if ! grep -q '^SDL_IM_MODULE' "$PAM_FILE"; then
-  echo 'SDL_IM_MODULE=fcitx' >>"$PAM_FILE"
-  updated=true
-fi
+# Qt apps
+add_var "QT_IM_MODULE" "fcitx5"
+
+# X11 compatibility
+add_var "XMODIFIERS" "@im=fcitx5"
+
+# SDL apps (games/emulators)
+add_var "SDL_IM_MODULE" "fcitx5"
+
+# Optional but recommended for Wayland apps
+add_var "INPUT_METHOD" "fcitx5"
+add_var "XMODIFIER" "@im=fcitx5"
 
 if [[ "$updated" == true ]]; then
-  celebrate_victory "IME configured"
+  celebrate_victory "Fcitx5 environment.d configured"
+
+  echo
+  echo "⚠️  Important:"
+  echo "   You must log out and log back in for changes to apply."
 else
-  echo "✓ IME already configured"
+  echo "✓ Fcitx5 IME already configured (environment.d)"
 fi
