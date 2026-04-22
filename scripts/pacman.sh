@@ -4,6 +4,9 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/core.sh"
 
 PACMAN_PKGS=(
+  "Meson:meson"
+  "Ninja:ninja"
+  "Cmake:cmake"
   "Extension Manager:extension-manager"
   "GNU Stow:stow"
   "Tor Browser:torbrowser-launcher"
@@ -53,6 +56,7 @@ install_pkg() {
     log_ok "$name installed"
   else
     log_error "$name failed"
+    record_fail "$name (pacman)"
   fi
 }
 

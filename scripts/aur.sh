@@ -37,6 +37,7 @@ install_aur_pkg() {
     log_ok "$name installed"
   else
     log_error "$name failed"
+    record_fail "$name (aur)"
   fi
 }
 
