@@ -79,7 +79,6 @@ PACMAN_CURRENT=0
 # Install a single entry
 # ─────────────────────────────────────────────
 install_pkg() {
-install_pkg() {
   local name="$1"
   local pkgs="$2"
 

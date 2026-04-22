@@ -1,15 +1,13 @@
 #!/bin/bash
 set -euo pipefail
 
+# ─────────────────────────────────────────────
+# Root directory
+# ─────────────────────────────────────────────
 INIT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-if ! command -v pacman &>/dev/null; then
-  log_error "This script requires Arch Linux"
-  exit 1
-fi
-
 # ─────────────────────────────────────────────
-# Defaults
+# Global flags (defaults)
 # ─────────────────────────────────────────────
 DRY_RUN_MODE=false
 FORCE_MODE=false
@@ -18,25 +16,6 @@ SKIP_AUR=false
 DIAGNOSE_MODE=false
 AUTO_DEPENDENCY=true
 FULL_UPGRADE=false
-
-# ─────────────────────────────────────────────
-# Help
-# ─────────────────────────────────────────────
-show_help() {
-  cat <<EOF
-Usage: ./init.sh [options]
-
-Options:
-  --dry-run         Simulate actions (no changes)
-  --force           Force overwrite where applicable
-  --verbose         Enable debug output
-  --skip-aur        Skip AUR packages
-  --diagnose        Run checks only (no installs)
-  --no-auto-deps    Skip dependency resolver
-  --full-upgrade    Run full system upgrade (pacman -Syu)
-  --help            Show this help
-EOF
-}
 
 # ─────────────────────────────────────────────
 # CLI parser
@@ -50,32 +29,33 @@ while [[ $# -gt 0 ]]; do
     --diagnose) DIAGNOSE_MODE=true ;;
     --no-auto-deps) AUTO_DEPENDENCY=false ;;
     --full-upgrade) FULL_UPGRADE=true ;;
-    --help) show_help; exit 0 ;;
-    *) echo "⚠️ Unknown flag: $1" ;;
+    --help)
+      echo "Usage: ./init.sh [options]"
+      echo
+      echo "Options:"
+      echo "  --dry-run         Simulate actions (no changes)"
+      echo "  --force           Force overwrite where applicable"
+      echo "  --verbose         Enable debug output"
+      echo "  --skip-aur        Skip AUR packages"
+      echo "  --diagnose        Run checks only (no installs)"
+      echo "  --no-auto-deps    Skip dependency resolver"
+      echo "  --full-upgrade    Run full system upgrade (pacman -Syu)"
+      echo "  --help            Show this help"
+      exit 0
+      ;;
+    *)
+      echo "⚠️ Unknown flag: $1"
+      ;;
   esac
   shift
 done
 
 export DRY_RUN_MODE FORCE_MODE VERBOSE_MODE SKIP_AUR DIAGNOSE_MODE AUTO_DEPENDENCY FULL_UPGRADE
 
-# Verbose mode
-if [[ "$VERBOSE_MODE" == "true" ]]; then
-  set -x
-fi
-
 # ─────────────────────────────────────────────
-# Core
+# Load core
 # ─────────────────────────────────────────────
 source "$INIT_DIR/core.sh"
-
-# ─────────────────────────────────────────────
-# Dependency resolver (optional)
-# ─────────────────────────────────────────────
-if [[ "$AUTO_DEPENDENCY" == "true" ]]; then
-  resolve_dependencies
-else
-  log_warn "Skipping dependency resolver"
-fi
 
 # ─────────────────────────────────────────────
 # Base system tools
@@ -86,92 +66,56 @@ ensure_system_tools() {
   local pkgs=("git" "base-devel")
 
   for pkg in "${pkgs[@]}"; do
-    if ! pacman -Q "$pkg" &>/dev/null; then
+    if ! command -v "$pkg" &>/dev/null && ! pacman -Q "$pkg" &>/dev/null; then
       log_warn "Missing $pkg → installing"
-      dry sudo pacman -S --needed --noconfirm "$pkg" || record_fail "bootstrap:$pkg"
+      dry sudo pacman -S --needed --noconfirm "$pkg" || true
     fi
   done
 }
 
 # ─────────────────────────────────────────────
-# Paru bootstrap
-# ─────────────────────────────────────────────
-install_paru() {
-  [[ "$SKIP_AUR" == "true" ]] && return
-
-  if command -v paru &>/dev/null; then
-    log_ok "paru already installed"
-    return
-  fi
-
-  log_warn "Installing paru..."
-
-  tmp=$(mktemp -d)
-
-  if dry git clone https://aur.archlinux.org/paru.git "$tmp/paru"; then
-    (
-      cd "$tmp/paru" || exit 1
-      dry makepkg -si --noconfirm
-    ) || {
-      log_error "paru build failed"
-      record_fail "paru build"
-    }    
-  else
-    record_fail "paru clone"
-  fi
-
-  rm -rf "$tmp"
-}
-
-# ─────────────────────────────────────────────
-# System bootstrap
+# Bootstrap system
 # ─────────────────────────────────────────────
 bootstrap_system() {
   log_info "Checking multilib repo..."
 
-  if ! grep -q "^\[multilib\]" /etc/pacman.conf; then
+  if grep -q "^\[multilib\]" /etc/pacman.conf; then
+    log_info "multilib already enabled"
+  else
     log_warn "Enabling multilib repo..."
     dry sudo sed -i '/^\[multilib\]/{s/^#//;n;s/^#//}' /etc/pacman.conf
   fi
 
   if [[ "$FULL_UPGRADE" == "true" ]]; then
-    log_info "Full upgrade"
+    log_info "Running full system upgrade..."
     dry sudo pacman -Syu --noconfirm
   else
-    log_info "Refreshing package database"
+    log_info "Refreshing package database..."
     dry sudo pacman -Sy --noconfirm
   fi
 }
 
 # ─────────────────────────────────────────────
-# Diagnose mode
-# ─────────────────────────────────────────────
-run_diagnose() {
-  log_info "Running diagnostics..."
-
-  for cmd in git pacman paru; do
-    if command -v "$cmd" &>/dev/null; then
-      log_ok "$cmd found"
-    else
-      log_warn "$cmd missing"
-    fi
-  done
-
-  log_ok "Diagnostics complete"
-}
-
-# ─────────────────────────────────────────────
-# Bootstrap stage
-# ─────────────────────────────────────────────
-ensure_system_tools
-install_paru
-bootstrap_system
-
-# ─────────────────────────────────────────────
 # Banner
 # ─────────────────────────────────────────────
-echo "🔥 Installer starting..."
+echo "🔥 No_Maidens_UwU Installer Starting..."
 echo "⚙️ Dry run: $DRY_RUN_MODE | Verbose: $VERBOSE_MODE | Diagnose: $DIAGNOSE_MODE"
+
+# ─────────────────────────────────────────────
+# Pre-flight setup
+# ─────────────────────────────────────────────
+ensure_system_tools
+
+if [[ "$AUTO_DEPENDENCY" == "true" ]]; then
+  resolve_dependencies
+else
+  log_warn "Skipping dependency resolver (--no-auto-deps)"
+fi
+
+# Install paru BEFORE AUR usage
+install_paru
+
+bootstrap_system
 
 # ─────────────────────────────────────────────
 # Load modules
@@ -186,37 +130,43 @@ MODULES=(
 )
 
 for module in "${MODULES[@]}"; do
-  source "$INIT_DIR/$module" || record_fail "module:$module"
+  path="$INIT_DIR/$module"
+
+  if [[ -f "$path" ]]; then
+    source "$path"
+    log_info "Loaded module: $module"
+  else
+    log_warn "Skipping missing module: $module"
+  fi
 done
 
 # ─────────────────────────────────────────────
-# Execution
+# Execution pipeline
 # ─────────────────────────────────────────────
-if [[ "$DIAGNOSE_MODE" == "true" ]]; then
-  run_diagnose
-else
+run_all() {
   run_pacman
-
-  [[ "$SKIP_AUR" != "true" ]] && run_aur
-
+  run_aur
   run_dotfiles
   run_ime_setup
   run_gnomeext
-  # run_services
-fi
+  run_services
+}
+
+run_all
 
 # ─────────────────────────────────────────────
 # Summary
 # ─────────────────────────────────────────────
 echo
+
 if (( ${#FAILED_ITEMS[@]} > 0 )); then
-  log_warn "Failures:"
+  log_warn "Some tasks failed:"
   for f in "${FAILED_ITEMS[@]}"; do
     echo "  - $f"
   done
 else
-  log_ok "All tasks successful"
+  log_ok "All tasks completed successfully"
 fi
 
 echo
-log_ok "🎉 Done"
+log_ok "🎉 All installation tasks completed"

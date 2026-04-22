@@ -86,7 +86,7 @@ dry() {
   "$@"
 }
 
-# Package check (reliable)
+# Package check
 is_pkg_installed() {
   pacman -Q "$1" &>/dev/null
 }
@@ -124,7 +124,7 @@ show_progress() {
 }
 
 # ─────────────────────────────────────────────
-# Dependency resolver (optional stage)
+# Dependency resolver
 # ─────────────────────────────────────────────
 
 detect_pkg_manager() {
@@ -149,12 +149,18 @@ install_dep() {
   log_info "Installing dependency: $pkg"
 
   case "$manager" in
-    paru) paru -S --needed --noconfirm "$pkg" ;;
-    yay) yay -S --needed --noconfirm "$pkg" ;;
-    pacman) sudo pacman -S --needed --noconfirm "$pkg" ;;
+    paru)
+      dry paru -S --needed --noconfirm "$pkg"
+      ;;
+    yay)
+      dry yay -S --needed --noconfirm "$pkg"
+      ;;
+    pacman)
+      dry sudo pacman -S --needed --noconfirm "$pkg"
+      ;;
     apt)
-      sudo apt update -y
-      sudo apt install -y "$pkg"
+      dry sudo apt update -y
+      dry sudo apt install -y "$pkg"
       ;;
     *)
       log_error "No supported package manager"
@@ -183,7 +189,6 @@ check_and_install() {
 resolve_dependencies() {
   log_info "Running dependency resolver..."
 
-  # Core tools
   check_and_install git
   check_and_install make
   check_and_install cmake
@@ -193,13 +198,50 @@ resolve_dependencies() {
   check_and_install zip
   check_and_install unzip
 
-  # GNOME tools
   check_and_install gnome-extensions gnome-shell
   check_and_install gnome-shell-extension-tool gnome-shell
 
-  # utilities
   check_and_install curl
   check_and_install wget
 
   log_ok "Dependency resolution complete"
+}
+
+# ─────────────────────────────────────────────
+# AUR HELPER INSTALL (paru)
+# ─────────────────────────────────────────────
+install_paru() {
+
+  if [[ "$SKIP_AUR" == "true" ]]; then
+    log_warn "Skipping paru installation (--skip-aur)"
+    return 0
+  fi
+
+  if command -v paru &>/dev/null; then
+    log_ok "paru already installed"
+    return 0
+  fi
+
+  log_warn "Installing paru..."
+
+  # Dry-run guard (CRITICAL)
+  if [[ "$DRY_RUN_MODE" == "true" ]]; then
+    log_warn "[DRY RUN] Would install paru from AUR"
+    return 0
+  fi
+
+  local tmp
+  tmp=$(mktemp -d)
+
+  git clone https://aur.archlinux.org/paru.git "$tmp/paru"
+
+  (
+    cd "$tmp/paru" || exit 1
+    makepkg -si --noconfirm
+  ) || {
+    log_error "paru build failed"
+    record_fail "paru build"
+  }
+
+  rm -rf "$tmp"
 }
