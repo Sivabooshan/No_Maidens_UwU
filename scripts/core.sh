@@ -74,11 +74,11 @@ dry() {
     log_warn "[DRY RUN] $*"
     return 0
   fi
-  "$@"
+  command "$@"
 }
 
 is_installed() {
-  pacman -Q "$1" &>/dev/null
+  pacman -Q "$1" &>/dev/null || command -v "$1" &>/dev/null
 }
 
 with_retry() {
@@ -90,7 +90,10 @@ with_retry() {
       echo "$out"
       return 0
     fi
-    log_warn "Retry $n/$max..."
+
+    log_warn "Retry $n/$max"
+    log_warn "Command: $*"
+
     sleep 2
     ((n++))
   done

@@ -40,15 +40,20 @@ install_pkg() {
   local name="$1"
   local pkg="$2"
 
+  PACMAN_CURRENT=$((PACMAN_CURRENT + 1))
+  show_progress "$PACMAN_CURRENT" "$PACMAN_TOTAL" "$name"
+  printf "\r"
+
   if is_installed "$pkg"; then
     log_ok "$name already installed"
     return
   fi
 
-  PACMAN_CURRENT=$((PACMAN_CURRENT + 1))
-  show_progress "$PACMAN_CURRENT" "$PACMAN_TOTAL" "$name"
-
-  dry sudo pacman -S --needed --noconfirm "$pkg" && log_ok "$name installed" || log_error "$name failed"
+  if dry sudo pacman -S --needed --noconfirm "$pkg"; then
+    log_ok "$name installed"
+  else
+    log_error "$name failed"
+  fi
 }
 
 run_pacman() {

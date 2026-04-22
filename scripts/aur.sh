@@ -24,15 +24,20 @@ install_aur_pkg() {
   local name="$1"
   local pkg="$2"
 
+  AUR_CURRENT=$((AUR_CURRENT + 1))
+  show_progress "$AUR_CURRENT" "$AUR_TOTAL" "$name"
+  printf "\n"
+
   if is_installed "$pkg"; then
     log_ok "$name already installed"
     return
   fi
 
-  AUR_CURRENT=$((AUR_CURRENT + 1))
-  show_progress "$AUR_CURRENT" "$AUR_TOTAL" "$name"
-
-  dry paru -S --needed --noconfirm "$pkg" && log_ok "$name installed" || log_error "$name failed"
+  if dry paru -S --needed --noconfirm "$pkg"; then
+    log_ok "$name installed"
+  else
+    log_error "$name failed"
+  fi
 }
 
 run_aur() {
