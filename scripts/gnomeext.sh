@@ -35,7 +35,7 @@ run_gnomeext() {
     tmp=$(mktemp -d)
     git clone https://github.com/aunetx/blur-my-shell "$tmp"
 
-    make -C "$tmp" install SHELL_VERSION_OVERRIDE="" >/dev/null 2>&1
+    make -C "$tmp" install SHELL_VERSION_OVERRIDE=""
 
     rm -rf "$tmp"
   '
@@ -54,12 +54,12 @@ run_gnomeext() {
     rm -rf "$ext_dir"
     mkdir -p "$ext_dir"
 
-    mv "$tmp"/* "$ext_dir"/
+    cp -r "$tmp"/. "$ext_dir"/
     rm -rf "$tmp"
   '
 
   # ─────────────────────────────
-  # AppIndicator
+  # AppIndicator (DEBUG ENABLED)
   # ─────────────────────────────
   install_ext "AppIndicator" '
     command -v git >/dev/null || exit 1
@@ -72,8 +72,9 @@ run_gnomeext() {
     git clone https://github.com/ubuntu/gnome-shell-extension-appindicator.git "$tmp"
     cd "$tmp"
 
-    meson setup "$build" --prefix="$HOME/.local" >/dev/null 2>&1
-    ninja -C "$build" install >/dev/null 2>&1
+    meson setup "$build" --prefix="$HOME/.local"
+    ninja -C "$build"
+    ninja -C "$build" install
 
     rm -rf "$tmp" "$build"
   '
@@ -93,7 +94,7 @@ run_gnomeext() {
   '
 
   # ─────────────────────────────
-  # Weekly Commits (SAFE FIX)
+  # Weekly Commits (SAFE)
   # ─────────────────────────────
   install_ext "Weekly Commits" '
     command -v git >/dev/null || exit 1
@@ -101,7 +102,6 @@ run_gnomeext() {
     tmp=$(mktemp -d)
     git clone https://github.com/funinkina/weekly-commits.git "$tmp"
 
-    # Find actual extension directory safely
     ext_src=$(find "$tmp" -name "metadata.json" -exec dirname {} \; | head -n 1)
 
     if [[ -z "$ext_src" || ! -d "$ext_src" ]]; then
@@ -114,22 +114,23 @@ run_gnomeext() {
     rm -rf "$ext_dir"
     mkdir -p "$ext_dir"
 
-    mv "$ext_src"/* "$ext_dir"/
+    cp -r "$ext_src"/. "$ext_dir"/
 
     rm -rf "$tmp"
   '
 
   # ─────────────────────────────
-  # Kimpanel
+  # Kimpanel (FIXED WORKDIR)
   # ─────────────────────────────
   install_ext "Kimpanel" '
     command -v git >/dev/null || exit 1
-    command -v cmake >/dev/null || exit 1
 
     tmp=$(mktemp -d)
     git clone https://github.com/wengxt/gnome-shell-extension-kimpanel.git "$tmp"
 
-    bash "$tmp/install.sh"
+    cd "$tmp"
+
+    bash install.sh
 
     rm -rf "$tmp"
   '
