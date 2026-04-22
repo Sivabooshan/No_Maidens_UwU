@@ -128,15 +128,3 @@ eval "$(starship init zsh)"
  alias tkw="tmux kill-window -t"
  alias tkp="tmux kill-pane -t"
  alias tkill="tmux kill-server"
-
-# Fcitx5 Japanese input setup
- export GTK_IM_MODULE=fcitx
- export QT_IM_MODULE=fcitx
- export XMODIFIERS=@im=fcitx
- export SDL_IM_MODULE=fcitx
-. "/home/typpo_24/.deno/env"
-
-export NVM_DIR="$HOME/.nvm"
-[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
-[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
-export PATH="$HOME/.npm-global/bin:$HOME/.nvm/versions/node/v22.12.0/bin:$PATH"
