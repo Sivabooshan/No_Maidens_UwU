@@ -53,6 +53,19 @@ log_error() { echo -e "${RED}✗${NC} $1" >&2; }
 log_ok()    { echo -e "${GREEN}✓${NC} $1"; }
 
 # ─────────────────────────────────────────────
+# Backward compatibility aliases
+# ─────────────────────────────────────────────
+
+info() { log_info "$1"; }
+warn() { log_warn "$1"; }
+error() { log_error "$1"; }
+ok() { log_ok "$1"; }
+
+checkpoint() { log_info "$1"; }
+victory() { log_ok "$1"; }
+celebrate_victory() { log_ok "$1"; }
+
+# ─────────────────────────────────────────────
 # Helpers
 # ─────────────────────────────────────────────
 
