@@ -83,7 +83,7 @@ bootstrap_system() {
     log_info "multilib already enabled"
   else
     log_warn "Enabling multilib repo..."
-    dry sudo sed -i '/^\[multilib\]/{s/^#//;n;s/^#//}' /etc/pacman.conf
+    sudo sed -i '/^\[multilib\]/{s/^#//;n;s/^#//}' /etc/pacman.conf || true
   fi
 
   if [[ "$FULL_UPGRADE" == "true" ]]; then
