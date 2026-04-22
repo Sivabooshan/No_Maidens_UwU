@@ -16,7 +16,7 @@ backup() {
 
 clone() {
   [[ -d "$DIR" ]] && {
-    warn "already exists"
+    warning "already exists"
     return
   }
 
