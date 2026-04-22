@@ -1,0 +1,6 @@
+1) instead of progress bar add the number of pacages before asking y/n like:
+
+[3/24] AUR or Pacman : "Package name"
+whant to install y/n line
+
+
