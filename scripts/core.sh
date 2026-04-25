@@ -47,13 +47,13 @@ log() {
   echo "[$(date '+%H:%M:%S')] $*" | tee -a "$LOG_FILE"
 }
 
-log_info()  { echo -e "${BLUE}::${NC} $1"; }
-log_warn()  { echo -e "${YELLOW}!${NC} $1"; }
-log_error() { echo -e "${RED}✗${NC} $1" >&2; }
-log_ok()    { echo -e "${GREEN}✓${NC} $1"; }
+log_info()  { log "${BLUE}::${NC} $1"; }
+log_warn()  { log "${YELLOW}!${NC} $1"; }
+log_error() { log "${RED}✗${NC} $1"; }
+log_ok()    { log "${GREEN}✓${NC} $1"; }
 
 log_debug() {
-  [[ "$VERBOSE_MODE" == "true" ]] && echo -e "${DIM}[DEBUG] $*${NC}"
+  [[ "$VERBOSE_MODE" == "true" ]] && log "${DIM}[DEBUG] $*${NC}"
 }
 
 # ─────────────────────────────────────────────
@@ -96,23 +96,21 @@ is_cmd_installed() {
   command -v "$1" &>/dev/null
 }
 
-# Retry wrapper
+# Retry wrapper (FIXED)
 with_retry() {
-  local n=1 max=3
-  local out
+  local n=1 max=3 delay=2
 
-  while ((n <= max)); do
-    if out="$("$@" 2>&1)"; then
-      echo "$out"
+  while (( n <= max )); do
+    if eval "$*"; then
       return 0
     fi
 
     log_warn "Retry $n/$max: $*"
-    sleep 2
+    sleep "$delay"
     ((n++))
   done
 
-  echo "$out"
+  log_error "Command failed after $max attempts: $*"
   return 1
 }
 
@@ -124,54 +122,43 @@ show_progress() {
 }
 
 # ─────────────────────────────────────────────
-# Dependency resolver
+# Dependency resolver (BOOTSTRAP ONLY)
 # ─────────────────────────────────────────────
+resolve_dependencies() {
+  log_info "Running dependency resolver..."
 
-detect_pkg_manager() {
-  if command -v paru &>/dev/null; then
-    echo "paru"
-  elif command -v yay &>/dev/null; then
-    echo "yay"
-  elif command -v pacman &>/dev/null; then
-    echo "pacman"
-  elif command -v apt &>/dev/null; then
-    echo "apt"
-  else
-    echo "unknown"
-  fi
+  # Essential build + git tools
+  check_and_install git git
+  check_and_install base-devel base-devel
+
+  # Network tools
+  check_and_install curl curl
+  check_and_install wget wget
+
+  log_ok "Dependency resolution complete"
 }
 
+# ─────────────────────────────────────────────
+# Install dependency helper
+# ─────────────────────────────────────────────
 install_dep() {
   local pkg="$1"
-  local manager
-  manager=$(detect_pkg_manager)
 
   log_info "Installing dependency: $pkg"
 
-  case "$manager" in
-    paru)
-      dry paru -S --needed --noconfirm "$pkg"
-      ;;
-    yay)
-      dry yay -S --needed --noconfirm "$pkg"
-      ;;
-    pacman)
-      dry sudo pacman -S --needed --noconfirm "$pkg"
-      ;;
-    apt)
-      dry sudo apt update -y
-      dry sudo apt install -y "$pkg"
-      ;;
-    *)
-      log_error "No supported package manager"
-      return 1
-      ;;
-  esac
+  if dry sudo pacman -S --needed --noconfirm "$pkg" >>"$LOG_FILE" 2>&1; then
+    log_ok "$pkg installed"
+  else
+    log_error "Failed to install $pkg"
+    record_fail "dep:$pkg"
+    return 1
+  fi
 }
 
+# Check and install command
 check_and_install() {
   local cmd="$1"
-  local pkg="${2:-$1}"
+  local pkg="$2"
 
   if is_cmd_installed "$cmd"; then
     log_ok "$cmd already installed"
@@ -179,32 +166,7 @@ check_and_install() {
   fi
 
   log_warn "$cmd missing → installing ($pkg)"
-  install_dep "$pkg" || {
-    log_error "Failed to install $pkg"
-    record_fail "dep:$pkg"
-    return 1
-  }
-}
-
-resolve_dependencies() {
-  log_info "Running dependency resolver..."
-
-  check_and_install git
-  check_and_install make
-  check_and_install cmake
-  check_and_install meson
-  check_and_install ninja
-  check_and_install jq
-  check_and_install zip
-  check_and_install unzip
-
-  check_and_install gnome-extensions gnome-shell
-  check_and_install gnome-shell-extension-tool gnome-shell
-
-  check_and_install curl
-  check_and_install wget
-
-  log_ok "Dependency resolution complete"
+  install_dep "$pkg"
 }
 
 # ─────────────────────────────────────────────
@@ -224,7 +186,6 @@ install_paru() {
 
   log_warn "Installing paru..."
 
-  # Dry-run guard (CRITICAL)
   if [[ "$DRY_RUN_MODE" == "true" ]]; then
     log_warn "[DRY RUN] Would install paru from AUR"
     return 0
@@ -233,15 +194,18 @@ install_paru() {
   local tmp
   tmp=$(mktemp -d)
 
-  git clone https://aur.archlinux.org/paru.git "$tmp/paru"
-
-  (
-    cd "$tmp/paru" || exit 1
-    makepkg -si --noconfirm
-  ) || {
-    log_error "paru build failed"
-    record_fail "paru build"
-  }
+  if with_retry git clone https://aur.archlinux.org/paru.git "$tmp/paru" >>"$LOG_FILE" 2>&1; then
+    (
+      cd "$tmp/paru" || exit 1
+      makepkg -si --noconfirm >>"$LOG_FILE" 2>&1
+    ) || {
+      log_error "paru build failed"
+      record_fail "paru build"
+    }
+  else
+    log_error "Failed to clone paru"
+    record_fail "paru clone"
+  fi
 
   rm -rf "$tmp"
 }

@@ -63,7 +63,7 @@ PACMAN_TOTAL=${#PACMAN_PKGS[@]}
 PACMAN_CURRENT=0
 
 # ─────────────────────────────────────────────
-# Install a single entry
+# Install a single entry (only missing pkgs)
 # ─────────────────────────────────────────────
 install_pkg() {
   local name="$1"
@@ -76,23 +76,24 @@ install_pkg() {
   # Convert to array safely
   read -r -a pkg_array <<< "$pkgs"
 
-  # Check if ALL packages are installed
-  local all_installed=true
+  # Find missing packages
+  local missing_pkgs=()
   for p in "${pkg_array[@]}"; do
     if ! pacman -Q "$p" &>/dev/null; then
-      all_installed=false
-      break
+      missing_pkgs+=("$p")
     fi
   done
 
-  if $all_installed; then
+  # Skip if everything is already installed
+  if (( ${#missing_pkgs[@]} == 0 )); then
     log_ok "$name already installed"
     return 0
   fi
 
   log_info "Installing $name"
 
-  if dry sudo pacman -S --needed --noconfirm "${pkg_array[@]}"; then
+  # Install only missing packages with retry + logging
+  if with_retry dry sudo pacman -S --needed --noconfirm "${missing_pkgs[@]}" >>"$LOG_FILE" 2>&1; then
     log_ok "$name installed"
   else
     log_error "$name failed"
@@ -110,8 +111,10 @@ diagnose_pacman() {
     local name="${entry%%|*}"
     local pkgs="${entry##*|}"
 
+    read -r -a pkg_array <<< "$pkgs"
+
     local all_installed=true
-    for p in $pkgs; do
+    for p in "${pkg_array[@]}"; do
       if ! pacman -Q "$p" &>/dev/null; then
         all_installed=false
         break
