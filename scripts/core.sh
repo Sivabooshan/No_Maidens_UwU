@@ -7,25 +7,21 @@ fi
 CORE_SH_LOADED=1
 
 # ─────────────────────────────────────────────
-# Colors (auto-disable if not TTY)
+# Colors
 # ─────────────────────────────────────────────
 if [ -t 1 ]; then
   RED='\033[0;31m'
   GREEN='\033[0;32m'
   YELLOW='\033[1;33m'
   BLUE='\033[0;34m'
-  CYAN='\033[0;36m'
-  PURPLE='\033[0;35m'
-  WHITE='\033[1;37m'
-  BOLD='\033[1m'
   DIM='\033[2m'
   NC='\033[0m'
 else
-  RED='' GREEN='' YELLOW='' BLUE='' CYAN='' PURPLE='' WHITE='' BOLD='' DIM='' NC=''
+  RED='' GREEN='' YELLOW='' BLUE='' DIM='' NC=''
 fi
 
 # ─────────────────────────────────────────────
-# GLOBAL FLAGS (defaults if not set)
+# GLOBAL FLAGS
 # ─────────────────────────────────────────────
 : "${DRY_RUN_MODE:=false}"
 : "${FORCE_MODE:=false}"
@@ -36,15 +32,28 @@ fi
 : "${FULL_UPGRADE:=false}"
 
 # ─────────────────────────────────────────────
-# Logging
+# Logging (FIXED: prevent disk explosion)
 # ─────────────────────────────────────────────
 if [[ -z "${LOG_FILE:-}" ]]; then
-  LOG_FILE="$HOME/.local/log/no-maidens-$(date +%Y%m%d-%H%M%S).log"
+  LOG_FILE="$HOME/.local/log/no-maidens.log"
   mkdir -p "$(dirname "$LOG_FILE")"
 fi
 
+# Limit log size (5MB max)
+rotate_logs() {
+  if [[ -f "$LOG_FILE" ]] && [[ $(stat -c%s "$LOG_FILE") -gt 5242880 ]]; then
+    mv "$LOG_FILE" "${LOG_FILE}.old"
+  fi
+}
+
 log() {
-  echo "[$(date '+%H:%M:%S')] $*" | tee -a "$LOG_FILE"
+  rotate_logs
+
+  # Print to terminal
+  echo -e "[$(date '+%H:%M:%S')] $*"
+
+  # Write minimal logs (no spam)
+  echo "[$(date '+%H:%M:%S')] $(echo -e "$*" | sed 's/\x1b\[[0-9;]*m//g')" >>"$LOG_FILE"
 }
 
 log_info()  { log "${BLUE}::${NC} $1"; }
@@ -66,18 +75,9 @@ record_fail() {
 }
 
 # ─────────────────────────────────────────────
-# Compatibility aliases
-# ─────────────────────────────────────────────
-info() { log_info "$1"; }
-warn() { log_warn "$1"; }
-error() { log_error "$1"; }
-ok() { log_ok "$1"; }
-
-# ─────────────────────────────────────────────
 # Helpers
 # ─────────────────────────────────────────────
 
-# Dry-run wrapper
 dry() {
   if [[ "$DRY_RUN_MODE" == "true" ]]; then
     log_warn "[DRY RUN] $*"
@@ -86,35 +86,30 @@ dry() {
   "$@"
 }
 
-# Package check
 is_pkg_installed() {
   pacman -Q "$1" &>/dev/null
 }
 
-# Command check
 is_cmd_installed() {
   command -v "$1" &>/dev/null
 }
 
-# Retry wrapper (FIXED)
+# Safe retry (NO eval)
 with_retry() {
-  local n=1 max=3 delay=2
+  local attempts=3 delay=2 count=1
 
-  while (( n <= max )); do
-    if eval "$*"; then
-      return 0
-    fi
+  while (( count <= attempts )); do
+    "$@" && return 0
 
-    log_warn "Retry $n/$max: $*"
+    log_warn "Retry $count/$attempts: $*"
     sleep "$delay"
-    ((n++))
+    ((count++))
   done
 
-  log_error "Command failed after $max attempts: $*"
+  log_error "Command failed after $attempts attempts: $*"
   return 1
 }
 
-# Progress display
 show_progress() {
   local cur=$1 total=$2 name=$3
   local pct=$((cur * 100 / total))
@@ -122,24 +117,27 @@ show_progress() {
 }
 
 # ─────────────────────────────────────────────
-# Dependency resolver (BOOTSTRAP ONLY)
+# Dependency resolver (FIXED: no duplicates)
 # ─────────────────────────────────────────────
 resolve_dependencies() {
   log_info "Running dependency resolver..."
 
-  # Essential build + git tools
-  check_and_install git git
-  check_and_install base-devel base-devel
+  local deps=(git base-devel curl wget)
 
-  # Network tools
-  check_and_install curl curl
-  check_and_install wget wget
+  for pkg in "${deps[@]}"; do
+    if is_pkg_installed "$pkg"; then
+      log_ok "$pkg already installed"
+    else
+      log_warn "$pkg missing → installing"
+      install_dep "$pkg"
+    fi
+  done
 
   log_ok "Dependency resolution complete"
 }
 
 # ─────────────────────────────────────────────
-# Install dependency helper
+# Install dependency
 # ─────────────────────────────────────────────
 install_dep() {
   local pkg="$1"
@@ -155,29 +153,28 @@ install_dep() {
   fi
 }
 
-# Check and install command
 check_and_install() {
   local cmd="$1"
   local pkg="$2"
 
-  if is_cmd_installed "$cmd"; then
-    log_ok "$cmd already installed"
+  if is_cmd_installed "$cmd" || is_pkg_installed "$pkg"; then
+    log_ok "$pkg already installed"
     return 0
   fi
 
-  log_warn "$cmd missing → installing ($pkg)"
+  log_warn "$pkg missing → installing"
   install_dep "$pkg"
 }
 
 # ─────────────────────────────────────────────
-# AUR HELPER INSTALL (paru)
+# Install paru (FIXED reliability)
 # ─────────────────────────────────────────────
 install_paru() {
 
-  if [[ "$SKIP_AUR" == "true" ]]; then
-    log_warn "Skipping paru installation (--skip-aur)"
+  [[ "$SKIP_AUR" == "true" ]] && {
+    log_warn "Skipping paru (--skip-aur)"
     return 0
-  fi
+  }
 
   if command -v paru &>/dev/null; then
     log_ok "paru already installed"
@@ -186,10 +183,10 @@ install_paru() {
 
   log_warn "Installing paru..."
 
-  if [[ "$DRY_RUN_MODE" == "true" ]]; then
-    log_warn "[DRY RUN] Would install paru from AUR"
+  [[ "$DRY_RUN_MODE" == "true" ]] && {
+    log_warn "[DRY RUN] Would install paru"
     return 0
-  fi
+  }
 
   local tmp
   tmp=$(mktemp -d)
@@ -203,9 +200,39 @@ install_paru() {
       record_fail "paru build"
     }
   else
-    log_error "Failed to clone paru"
+    log_error "paru clone failed"
     record_fail "paru clone"
   fi
 
   rm -rf "$tmp"
+}
+
+# ─────────────────────────────────────────────
+# CLEANUP (FIXED: actually frees space)
+# ─────────────────────────────────────────────
+cleanup_system() {
+
+  log_info "Starting system cleanup..."
+
+  # Aggressive pacman cleanup (IMPORTANT)
+  log_info "Cleaning pacman cache (FULL)"
+  dry sudo pacman -Scc --noconfirm >>"$LOG_FILE" 2>&1 \
+    && log_ok "Pacman cache cleaned" \
+    || log_warn "Pacman cleanup failed"
+
+  # AUR cleanup
+  if command -v paru &>/dev/null; then
+    log_info "Cleaning AUR cache"
+    dry paru -Scc --noconfirm >>"$LOG_FILE" 2>&1 \
+      && log_ok "AUR cache cleaned" \
+      || log_warn "AUR cleanup failed"
+  fi
+
+  # Remove orphan packages (BIG win)
+  log_info "Removing orphan packages"
+  if orphans=$(pacman -Qtdq 2>/dev/null); then
+    [[ -n "$orphans" ]] && dry sudo pacman -Rns --noconfirm $orphans
+  fi
+
+  log_ok "System cleanup complete"
 }
