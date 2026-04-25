@@ -188,17 +188,29 @@ install_paru() {
     return 0
   }
 
+  # Prevent sudo prompt mid-build
+  sudo -v
+
+  # Ensure build deps
+  check_and_install rust rust
+
   local tmp
   tmp=$(mktemp -d)
 
-  if with_retry git clone https://aur.archlinux.org/paru.git "$tmp/paru" >>"$LOG_FILE" 2>&1; then
+  log_info "Cloning paru repository..."
+  if with_retry git clone https://aur.archlinux.org/paru.git "$tmp/paru" \
+      2>&1 | tee -a "$LOG_FILE"; then
+
+    log_info "Building paru (this may take a few minutes)..."
+
     (
       cd "$tmp/paru" || exit 1
-      makepkg -si --noconfirm >>"$LOG_FILE" 2>&1
+      makepkg -si --noconfirm 2>&1 | tee -a "$LOG_FILE"
     ) || {
       log_error "paru build failed"
       record_fail "paru build"
     }
+
   else
     log_error "paru clone failed"
     record_fail "paru clone"
