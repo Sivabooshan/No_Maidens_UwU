@@ -6,7 +6,7 @@ source "$SCRIPT_DIR/core.sh"
 # ─────────────────────────────────────────────
 # CONFIG
 # ─────────────────────────────────────────────
-DOTFILES_REPO="${DOTFILES_REPO:-https://github.com/yourusername/dotfiles.git}"
+DOTFILES_REPO="${DOTFILES_REPO:-https://github.com/Sivabooshan/No_Maidens_UwU.git}"
 DOTFILES_DIR="${DOTFILES_DIR:-$HOME/dotfiles}"
 
 # Stow packages (folders inside repo)
