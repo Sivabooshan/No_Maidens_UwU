@@ -1,5 +1,9 @@
 #!/bin/bash
 
+# To backup ./easyeffects.sh backup
+# To restore ./easyeffects.sh restore /path/to/backup_file.tar.gz
+
+
 # Function to backup EasyEffects
 backup_easyeffects() {
     set -e

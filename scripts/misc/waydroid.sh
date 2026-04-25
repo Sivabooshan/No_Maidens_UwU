@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# To backup ./waydroid.sh backup
+# To restore ./waydroid.sh restore /path/to/backup_file.tar.gz
+
 # Function to backup waydroid
 backup_waydroid() {
     set -e
