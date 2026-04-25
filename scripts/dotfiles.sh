@@ -6,8 +6,11 @@ source "$SCRIPT_DIR/core.sh"
 # ─────────────────────────────────────────────
 # CONFIG
 # ─────────────────────────────────────────────
+# ─────────────────────────────────────────────
+# CONFIG
+# ─────────────────────────────────────────────
 DOTFILES_REPO="${DOTFILES_REPO:-https://github.com/Sivabooshan/No_Maidens_UwU.git}"
-DOTFILES_DIR="${DOTFILES_DIR:-$HOME/dotfiles}"
+DOTFILES_DIR="${DOTFILES_DIR:-$HOME/No_Maidens_UwU}"
 
 # Stow packages (folders inside repo)
 STOW_PKGS=(
