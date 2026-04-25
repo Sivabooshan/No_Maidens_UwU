@@ -13,19 +13,6 @@ PACMAN_PKGS=(
   "Zip|zip"
   "JQ|jq"
 
-  # ───────── NVIDIA STACK ─────────
-  "NVIDIA Driver|nvidia nvidia-utils"
-  "NVIDIA 32-bit libs|lib32-nvidia-utils"
-
-  # ───────── VULKAN STACK ─────────
-  "Vulkan Loader|vulkan-icd-loader"
-  "Vulkan 32-bit Loader|lib32-vulkan-icd-loader"
-  "Vulkan Tools|vulkan-tools"
-
-  # ───────── GAMING ─────────
-  "Gamemode|gamemode"
-  "Gamemode 32-bit|lib32-gamemode"
-
   # ───────── GNOME / SYSTEM ─────────
   "Extension Manager|extension-manager"
   "GNU Stow|stow"
