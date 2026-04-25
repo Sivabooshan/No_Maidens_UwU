@@ -36,7 +36,7 @@ install_aur_pkg() {
   show_progress "$AUR_CURRENT" "$AUR_TOTAL" "$name"
   printf "\n"
 
-  # Check if already installed (reliable)
+  # Check if already installed
   if pacman -Q "$pkg" &>/dev/null; then
     log_ok "$name already installed"
     return 0
@@ -44,7 +44,8 @@ install_aur_pkg() {
 
   log_info "Installing $name (AUR)"
 
-  if dry paru -S --needed --noconfirm "$pkg"; then
+  # Install with retry + logging
+  if with_retry paru -S --needed --noconfirm "$pkg" >>"$LOG_FILE" 2>&1; then
     log_ok "$name installed"
   else
     log_error "$name failed"
@@ -77,13 +78,14 @@ diagnose_aur() {
 # Main runner
 # ─────────────────────────────────────────────
 run_aur() {
+
   # Respect global skip flag
   if [[ "$SKIP_AUR" == "true" ]]; then
     log_warn "Skipping AUR (flag enabled)"
     return
   fi
 
-  # Ensure paru exists (should already be bootstrapped)
+  # Ensure paru exists
   if ! command -v paru &>/dev/null; then
     log_error "paru not found (bootstrap failed?)"
     record_fail "paru missing"
