@@ -4,3 +4,5 @@
 whant to install y/n line
 
 2) Add oh my zsh and its plugins
+
+3) Add scripts, Readme, TDL.txt in .stow-local-ignore
