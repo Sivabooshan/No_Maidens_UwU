@@ -1,5 +1,5 @@
 #!/bin/bash
-set -euo pipefail
+set -uo pipefail
 
 # ─────────────────────────────────────────────
 # Root directory
@@ -7,7 +7,7 @@ set -euo pipefail
 INIT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # ─────────────────────────────────────────────
-# Global flags (defaults)
+# Global flags
 # ─────────────────────────────────────────────
 DRY_RUN_MODE=false
 FORCE_MODE=false
@@ -31,16 +31,13 @@ while [[ $# -gt 0 ]]; do
     --full-upgrade) FULL_UPGRADE=true ;;
     --help)
       echo "Usage: ./init.sh [options]"
-      echo
-      echo "Options:"
-      echo "  --dry-run         Simulate actions (no changes)"
-      echo "  --force           Force overwrite where applicable"
-      echo "  --verbose         Enable debug output"
-      echo "  --skip-aur        Skip AUR packages"
-      echo "  --diagnose        Run checks only (no installs)"
+      echo "  --dry-run         Simulate actions"
+      echo "  --force           Force overwrite"
+      echo "  --verbose         Debug logs"
+      echo "  --skip-aur        Skip AUR"
+      echo "  --diagnose        Check only"
       echo "  --no-auto-deps    Skip dependency resolver"
-      echo "  --full-upgrade    Run full system upgrade (pacman -Syu)"
-      echo "  --help            Show this help"
+      echo "  --full-upgrade    pacman -Syu"
       exit 0
       ;;
     *)
@@ -58,49 +55,31 @@ export DRY_RUN_MODE FORCE_MODE VERBOSE_MODE SKIP_AUR DIAGNOSE_MODE AUTO_DEPENDEN
 source "$INIT_DIR/core.sh"
 
 # ─────────────────────────────────────────────
-# Base system tools
-# ─────────────────────────────────────────────
-ensure_system_tools() {
-  log_info "Checking base system tools..."
-
-  local pkgs=("git" "base-devel")
-
-  for pkg in "${pkgs[@]}"; do
-    if ! command -v "$pkg" &>/dev/null && ! pacman -Q "$pkg" &>/dev/null; then
-      log_warn "Missing $pkg → installing"
-      dry sudo pacman -S --needed --noconfirm "$pkg" || true
-    fi
-  done
-}
-
-# ─────────────────────────────────────────────
 # Bootstrap system
 # ─────────────────────────────────────────────
 bootstrap_system() {
   log_info "Checking multilib repo..."
 
-  # Case 1: already enabled
   if grep -q "^\[multilib\]" /etc/pacman.conf; then
-    log_info "multilib already enabled"
+    log_ok "multilib already enabled"
 
-  # Case 2: commented → enable it
   elif grep -q "^#\[multilib\]" /etc/pacman.conf; then
     log_warn "Enabling multilib repo..."
 
     dry sudo sed -i '/^#\[multilib\]/,/^#Include/ s/^#//' /etc/pacman.conf
 
-    # 🔎 Verify after change
-    if grep -q "^\[multilib\]" /etc/pacman.conf; then
-      log_ok "multilib enabled successfully"
-    else
-      log_error "failed to enable multilib"
-      record_fail "multilib"
+    # Skip verification in dry-run
+    if [[ "$DRY_RUN_MODE" == "false" ]]; then
+      if grep -q "^\[multilib\]" /etc/pacman.conf; then
+        log_ok "multilib enabled"
+      else
+        log_error "failed to enable multilib"
+        record_fail "multilib"
+      fi
     fi
 
-  # Case 3: section missing entirely
   else
-    log_error "multilib section not found in pacman.conf"
-    record_fail "multilib missing"
+    log_warn "multilib section not found"
   fi
 
   # ─────────────────────────────────────────────
@@ -121,19 +100,15 @@ echo "🔥 No_Maidens_UwU Installer Starting..."
 echo "⚙️ Dry run: $DRY_RUN_MODE | Verbose: $VERBOSE_MODE | Diagnose: $DIAGNOSE_MODE"
 
 # ─────────────────────────────────────────────
-# Pre-flight setup
+# Pre-flight
 # ─────────────────────────────────────────────
-ensure_system_tools
-
 if [[ "$AUTO_DEPENDENCY" == "true" ]]; then
   resolve_dependencies
 else
-  log_warn "Skipping dependency resolver (--no-auto-deps)"
+  log_warn "Skipping dependency resolver"
 fi
 
-# Install paru BEFORE AUR usage
 install_paru
-
 bootstrap_system
 
 # ─────────────────────────────────────────────
@@ -142,11 +117,11 @@ bootstrap_system
 MODULES=(
   "pacman.sh"
   "aur.sh"
+  "services.sh"
   "dotfiles.sh"
+  "zsh.sh"
   "ime_setup.sh"
   "gnomeext.sh"
-  "services.sh"
-  "zsh.sh"
 )
 
 for module in "${MODULES[@]}"; do
@@ -156,24 +131,47 @@ for module in "${MODULES[@]}"; do
     source "$path"
     log_info "Loaded module: $module"
   else
-    log_warn "Skipping missing module: $module"
+    log_warn "Missing module: $module"
   fi
 done
+
+# ─────────────────────────────────────────────
+# Safe runner wrapper
+# ─────────────────────────────────────────────
+run_step() {
+  local name="$1"
+  shift
+
+  if declare -f "$name" >/dev/null; then
+    log_info "Running: $name"
+    "$name" || {
+      log_error "$name failed"
+      record_fail "$name"
+    }
+  else
+    log_warn "$name not defined → skipping"
+  fi
+}
 
 # ─────────────────────────────────────────────
 # Execution pipeline
 # ─────────────────────────────────────────────
 run_all() {
-  run_pacman
-  run_aur
-  run_dotfiles
-  run_ime_setup
-  run_gnomeext
-  run_services
-  run_zsh_setup
+  run_step run_pacman
+  run_step run_aur
+  run_step run_services
+  run_step run_dotfiles
+  run_step run_zsh_setup
+  run_step run_ime_setup
+  run_step run_gnomeext
 }
 
 run_all
+
+# ─────────────────────────────────────────────
+# Cleanup (IMPORTANT)
+# ─────────────────────────────────────────────
+cleanup_system
 
 # ─────────────────────────────────────────────
 # Summary
@@ -190,4 +188,4 @@ else
 fi
 
 echo
-log_ok "🎉 All installation tasks completed"
+log_ok "🎉 Installation complete"
