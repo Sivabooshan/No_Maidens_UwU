@@ -4,84 +4,73 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/core.sh"
 
 # ─────────────────────────────────────────────
-# Config
+# CONFIG
 # ─────────────────────────────────────────────
-REPO="https://github.com/Sivabooshan/No_Maidens_UwU.git"
-DIR="$HOME/No_Maidens_UwU"
+DOTFILES_REPO="${DOTFILES_REPO:-https://github.com/yourusername/dotfiles.git}"
+DOTFILES_DIR="${DOTFILES_DIR:-$HOME/dotfiles}"
 
-# ─────────────────────────────────────────────
-# Backup existing configs
-# ─────────────────────────────────────────────
-backup_dotfiles() {
-  log_info "Creating backup..."
-
-  local backup_dir="$HOME/.config/backup-$(date +%s)"
-  mkdir -p "$backup_dir"
-
-  [[ -e "$HOME/.zshrc" ]] && cp "$HOME/.zshrc" "$backup_dir/"
-  [[ -e "$HOME/.tmux.conf" ]] && cp "$HOME/.tmux.conf" "$backup_dir/"
-
-  log_ok "Backup created at $backup_dir"
-}
+# Stow packages (folders inside repo)
+STOW_PKGS=(
+  "zsh"
+  "nvim"
+  "tmux"
+  "git"
+)
 
 # ─────────────────────────────────────────────
-# Clone repo
+# Clone or update repo
 # ─────────────────────────────────────────────
-clone_repo() {
-  if [[ -d "$DIR" ]]; then
-    log_warn "Dotfiles repo already exists"
+setup_dotfiles_repo() {
 
-    if [[ "$FORCE_MODE" == "true" ]]; then
-      log_warn "Force enabled → recloning"
-      dry rm -rf "$DIR"
+  if [[ -d "$DOTFILES_DIR/.git" ]]; then
+    log_info "Updating dotfiles repository"
+
+    if with_retry git -C "$DOTFILES_DIR" pull >>"$LOG_FILE" 2>&1; then
+      log_ok "Dotfiles updated"
     else
-      return 0
+      log_error "Failed to update dotfiles"
+      record_fail "dotfiles:update"
     fi
-  fi
 
-  log_info "Cloning dotfiles repo..."
-
-  if dry git clone "$REPO" "$DIR"; then
-    log_ok "Repository cloned"
   else
-    log_error "Clone failed"
-    record_fail "dotfiles clone"
+    log_info "Cloning dotfiles repository"
+
+    if with_retry git clone "$DOTFILES_REPO" "$DOTFILES_DIR" >>"$LOG_FILE" 2>&1; then
+      log_ok "Dotfiles cloned"
+    else
+      log_error "Failed to clone dotfiles"
+      record_fail "dotfiles:clone"
+      return 1
+    fi
   fi
 }
 
 # ─────────────────────────────────────────────
-# Apply with stow
+# Apply dotfiles using stow
 # ─────────────────────────────────────────────
-apply_stow() {
-  log_info "Applying dotfiles with stow..."
+apply_dotfiles() {
 
-  if [[ ! -d "$DIR" ]]; then
-    log_error "Dotfiles directory missing"
-    record_fail "dotfiles missing"
-    return 1
-  fi
+  # Ensure stow exists
+  check_and_install stow stow
 
-  cd "$DIR" || {
-    log_error "Failed to enter $DIR"
-    record_fail "dotfiles cd"
-    return 1
-  }
+  log_info "Applying dotfiles with stow"
 
-  if [[ "$FORCE_MODE" == "true" ]]; then
-    if dry stow --adopt .; then
-      log_ok "Stow applied (force)"
-    else
-      log_error "Stow failed"
-      record_fail "stow force"
+  for pkg in "${STOW_PKGS[@]}"; do
+
+    if [[ ! -d "$DOTFILES_DIR/$pkg" ]]; then
+      log_warn "Skipping $pkg (not found in repo)"
+      continue
     fi
-  else
-    if dry stow .; then
-      log_ok "Stow applied"
+
+    log_info "Stowing $pkg"
+
+    if dry stow -d "$DOTFILES_DIR" -t "$HOME" "$pkg" >>"$LOG_FILE" 2>&1; then
+      log_ok "$pkg applied"
     else
-      log_warn "Stow conflict (skipped)"
-      record_fail "stow conflict"
+      log_error "$pkg failed"
+      record_fail "dotfiles:$pkg"
     fi
-  fi
+  done
 }
 
 # ─────────────────────────────────────────────
@@ -90,17 +79,19 @@ apply_stow() {
 diagnose_dotfiles() {
   log_info "Diagnosing dotfiles..."
 
-  if [[ -d "$DIR" ]]; then
-    log_ok "Repo exists: $DIR"
+  if [[ -d "$DOTFILES_DIR/.git" ]]; then
+    log_ok "Dotfiles repo exists"
   else
-    log_warn "Repo missing"
+    log_warn "Dotfiles repo missing"
   fi
 
-  if command -v stow &>/dev/null; then
-    log_ok "stow installed"
-  else
-    log_warn "stow missing"
-  fi
+  for pkg in "${STOW_PKGS[@]}"; do
+    if [[ -d "$DOTFILES_DIR/$pkg" ]]; then
+      log_ok "$pkg available"
+    else
+      log_warn "$pkg missing"
+    fi
+  done
 
   log_ok "Dotfiles diagnostics complete"
 }
@@ -109,6 +100,7 @@ diagnose_dotfiles() {
 # Main runner
 # ─────────────────────────────────────────────
 run_dotfiles() {
+
   if [[ "$DIAGNOSE_MODE" == "true" ]]; then
     diagnose_dotfiles
     return
@@ -116,9 +108,9 @@ run_dotfiles() {
 
   log_info "Dotfiles setup started"
 
-  backup_dotfiles
-  clone_repo
-  apply_stow
+  setup_dotfiles_repo || return
+  apply_dotfiles
 
   echo
+  log_ok "Dotfiles setup complete"
 }

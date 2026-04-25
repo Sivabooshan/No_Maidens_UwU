@@ -16,11 +16,11 @@ is_gnome_session() {
 }
 
 # ─────────────────────────────────────────────
-# Compile schemas (important for GNOME)
+# Compile schemas
 # ─────────────────────────────────────────────
 compile_schemas() {
   if command -v glib-compile-schemas &>/dev/null; then
-    glib-compile-schemas "$EXT_DIR" 2>/dev/null || true
+    glib-compile-schemas "$EXT_DIR" >>"$LOG_FILE" 2>&1 || true
   fi
 }
 
@@ -40,11 +40,10 @@ enable_extension() {
     return
   fi
 
-  # Wait briefly for GNOME to register extension
   sleep 1
 
   if gnome-extensions list | grep -q "$uuid"; then
-    if dry gnome-extensions enable "$uuid"; then
+    if dry gnome-extensions enable "$uuid" >>"$LOG_FILE" 2>&1; then
       log_ok "Enabled $uuid"
     else
       log_warn "Failed to enable $uuid"
@@ -64,7 +63,7 @@ install_ext() {
 
   log_info "Installing $name"
 
-  if dry bash -c "set -euo pipefail; $script"; then
+  if with_retry bash -c "set -euo pipefail; $script" >>"$LOG_FILE" 2>&1; then
     log_ok "$name installed"
 
     compile_schemas
@@ -98,7 +97,7 @@ auto_enable_all() {
   sleep 2
 
   while read -r ext; do
-    dry gnome-extensions enable "$ext" &>/dev/null || true
+    dry gnome-extensions enable "$ext" >>"$LOG_FILE" 2>&1 || true
   done < <(gnome-extensions list 2>/dev/null)
 
   log_ok "Extensions enabled"
@@ -239,10 +238,11 @@ run_gnomeext() {
 
   echo
 
-  # Final fallback enable
   auto_enable_all
 
+  # ─────────────────────────────
   # Summary
+  # ─────────────────────────────
   if (( ${#FAILED_EXTENSIONS[@]} > 0 )); then
     log_warn "Some GNOME extensions failed:"
     for f in "${FAILED_EXTENSIONS[@]}"; do

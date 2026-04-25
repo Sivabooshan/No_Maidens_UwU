@@ -17,6 +17,7 @@ PACMAN_PKGS=(
   "Extension Manager|extension-manager"
   "GNU Stow|stow"
   "Flatpak|flatpak"
+  "UFW Firewall|ufw"
 
   # ───────── APPS ─────────
   "Tor Browser|torbrowser-launcher"

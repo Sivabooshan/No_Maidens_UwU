@@ -20,6 +20,8 @@ AUR_PKGS=(
   "Minecraft|sklauncher"
   "VS Code|visual-studio-code-bin"
   "Steam|steam"
+  "Waydroid|waydroid"
+  "Waydroid Gapps|waydroid-image-gapps"
 )
 
 AUR_TOTAL=${#AUR_PKGS[@]}

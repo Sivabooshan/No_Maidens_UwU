@@ -4,37 +4,98 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/core.sh"
 
 # ─────────────────────────────────────────────
-# Services list (SAFE MINIMAL SET)
-# Only system services that are NOT auto-managed
+# SERVICES LIST
 # ─────────────────────────────────────────────
 SERVICES=(
-  "Bluetooth|bluetooth|system"
-  "CUPS Printing|cups|system"
+  "Bluetooth|bluetooth.service"
+  "CUPS (Printing)|cups.service"
+  "SSH|sshd.service"
+  "Avahi (Network Discovery)|avahi-daemon.service"
+  "UFW Firewall|ufw.service"
 )
 
+SERVICES_TOTAL=${#SERVICES[@]}
+SERVICES_CURRENT=0
+
 # ─────────────────────────────────────────────
-# Check if service is enabled
+# UFW Setup (with Waydroid support)
 # ─────────────────────────────────────────────
-is_enabled() {
-  local svc="$1"
-  systemctl is-enabled "$svc" &>/dev/null
+setup_ufw() {
+  log_info "Configuring UFW firewall"
+
+  if ! command -v ufw &>/dev/null; then
+    log_warn "ufw not installed, skipping"
+    return
+  fi
+
+  # Check if already enabled
+  if sudo ufw status | grep -q "Status: active"; then
+    log_ok "UFW already enabled"
+    return
+  fi
+
+  log_info "Setting default firewall policies"
+
+  dry sudo ufw default deny incoming >>"$LOG_FILE" 2>&1
+  dry sudo ufw default allow outgoing >>"$LOG_FILE" 2>&1
+
+  # 🔹 Waydroid requirements
+  log_info "Applying Waydroid firewall rules"
+
+  # DNS + DHCP
+  dry sudo ufw allow 53 >>"$LOG_FILE" 2>&1
+  dry sudo ufw allow 67 >>"$LOG_FILE" 2>&1
+
+  # Packet forwarding (required)
+  dry sudo ufw default allow FORWARD >>"$LOG_FILE" 2>&1
+
+  # 🔹 Common desktop allowances
+  log_info "Allowing common services"
+
+  # SSH (avoid lockout)
+  dry sudo ufw allow OpenSSH >>"$LOG_FILE" 2>&1
+
+  # KDE Connect (you installed it)
+  dry sudo ufw allow 1714:1764/udp >>"$LOG_FILE" 2>&1
+  dry sudo ufw allow 1714:1764/tcp >>"$LOG_FILE" 2>&1
+
+  # Enable firewall
+  log_info "Enabling UFW"
+
+  if with_retry dry sudo ufw --force enable >>"$LOG_FILE" 2>&1; then
+    log_ok "UFW enabled"
+  else
+    log_error "Failed to enable UFW"
+    record_fail "ufw"
+  fi
 }
 
 # ─────────────────────────────────────────────
-# Enable service
+# Enable + start service
 # ─────────────────────────────────────────────
 enable_service() {
   local name="$1"
   local svc="$2"
 
-  log_info "Processing $name"
+  SERVICES_CURRENT=$((SERVICES_CURRENT + 1))
+  show_progress "$SERVICES_CURRENT" "$SERVICES_TOTAL" "$name"
+  printf "\n"
 
-  if is_enabled "$svc"; then
-    log_ok "$name already enabled"
-    return 0
+  # Check if service exists
+  if ! systemctl list-unit-files | grep -q "^$svc"; then
+    log_warn "$svc not found, skipping"
+    return
   fi
 
-  if dry sudo systemctl enable --now "$svc"; then
+  # Check if already enabled
+  if systemctl is-enabled "$svc" &>/dev/null; then
+    log_ok "$name already enabled"
+    return
+  fi
+
+  log_info "Enabling $name"
+
+  if with_retry dry sudo systemctl enable --now "$svc" >>"$LOG_FILE" 2>&1; then
     log_ok "$name enabled"
   else
     log_error "$name failed"
@@ -59,6 +120,11 @@ diagnose_services() {
     fi
   done
 
+  # UFW status
+  if command -v ufw &>/dev/null; then
+    sudo ufw status | tee -a "$LOG_FILE"
+  fi
+
   echo
   log_ok "Service diagnostics complete"
 }
@@ -75,12 +141,23 @@ run_services() {
 
   log_info "Service setup started"
 
-  for entry in "${SERVICES[@]}"; do
-    local name="${entry%%|*}"
-    local svc="${entry##*|}"
+  # 🔥 Setup firewall FIRST (important)
+  setup_ufw
 
-    enable_service "$name" "$svc"
+  # Enable services
+  for entry in "${SERVICES[@]}"; do
+    enable_service "${entry%%|*}" "${entry##*|}"
   done
 
   echo
+
+  # Summary
+  if (( ${#FAILED_ITEMS[@]} > 0 )); then
+    log_warn "Some services failed:"
+    for f in "${FAILED_ITEMS[@]}"; do
+      echo "  - $f"
+    done
+  else
+    log_ok "All services enabled successfully"
+  fi
 }

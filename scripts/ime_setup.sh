@@ -4,97 +4,64 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/core.sh"
 
 # ─────────────────────────────────────────────
-# Config
+# CONFIG
 # ─────────────────────────────────────────────
-ENV_FILE="$HOME/.config/environment.d/im.conf"
+ENV_FILE="$HOME/.config/environment.d/ime.conf"
+
+# Required environment variables
+IME_VARS=(
+  "GTK_IM_MODULE=fcitx"
+  "QT_IM_MODULE=fcitx"
+  "XMODIFIERS=@im=fcitx"
+  "SDL_IM_MODULE=fcitx"
+  "GLFW_IM_MODULE=ibus"
+)
 
 # ─────────────────────────────────────────────
-# Set environment variables
+# Write environment variables safely
 # ─────────────────────────────────────────────
 setup_env() {
-  log_info "Configuring IME environment variables..."
+  log_info "Configuring IME environment variables"
 
   mkdir -p "$(dirname "$ENV_FILE")"
 
-  if [[ -f "$ENV_FILE" && "$FORCE_MODE" != "true" ]]; then
-    log_warn "Environment file exists (use --force to overwrite)"
-    return 0
+  # Create temp file
+  tmp=$(mktemp)
+
+  # Preserve unrelated lines if file exists
+  if [[ -f "$ENV_FILE" ]]; then
+    grep -v -E '^(GTK_IM_MODULE|QT_IM_MODULE|XMODIFIERS|SDL_IM_MODULE|GLFW_IM_MODULE)=' "$ENV_FILE" > "$tmp"
   fi
 
-  if dry tee "$ENV_FILE" >/dev/null <<EOF
-GTK_IM_MODULE=fcitx
-QT_IM_MODULE=fcitx
-XMODIFIERS=@im=fcitx
-INPUT_METHOD=fcitx
-SDL_IM_MODULE=fcitx
-GLFW_IM_MODULE=ibus
-EOF
-  then
-    log_ok "Environment configured"
+  # Add our variables
+  for var in "${IME_VARS[@]}"; do
+    echo "$var" >> "$tmp"
+  done
+
+  if dry mv "$tmp" "$ENV_FILE" >>"$LOG_FILE" 2>&1; then
+    log_ok "Environment variables configured"
   else
-    log_error "Failed to write environment config"
+    log_error "Failed to write environment file"
     record_fail "ime:env"
   fi
 }
 
 # ─────────────────────────────────────────────
-# Setup fcitx5 config directory
+# Start fcitx5 daemon
 # ─────────────────────────────────────────────
-setup_fcitx_config() {
-  log_info "Setting up fcitx5 configuration..."
+start_fcitx() {
+  log_info "Starting fcitx5 daemon"
 
-  local conf_dir="$HOME/.config/fcitx5"
-
-  if [[ -f "$conf_dir/profile" && "$FORCE_MODE" != "true" ]]; then
-    log_warn "fcitx5 config exists (use --force to overwrite)"
+  if pgrep -x fcitx5 &>/dev/null; then
+    log_ok "fcitx5 already running"
     return 0
   fi
 
-  dry mkdir -p "$conf_dir"
-
-  # Minimal profile (Mozc + keyboard)
-  if dry tee "$conf_dir/profile" >/dev/null <<EOF
-[Groups/0]
-Name=Default
-Default Layout=us
-DefaultIM=mozc
-
-[Groups/0/Items/0]
-Name=keyboard-us
-Layout=
-
-[Groups/0/Items/1]
-Name=mozc
-Layout=
-EOF
-  then
-    log_ok "fcitx5 profile configured"
+  if dry fcitx5 -d >>"$LOG_FILE" 2>&1; then
+    log_ok "fcitx5 started"
   else
-    log_error "Failed to configure fcitx5 profile"
-    record_fail "ime:fcitx-profile"
+    log_warn "Failed to start fcitx5 (may require relogin)"
   fi
-}
-
-# ─────────────────────────────────────────────
-# Restart fcitx (optional)
-# ─────────────────────────────────────────────
-restart_fcitx() {
-  log_info "Restarting fcitx5..."
-
-  if ! command -v fcitx5 &>/dev/null; then
-    log_warn "fcitx5 not installed"
-    return
-  fi
-
-  if [[ "$DRY_RUN_MODE" == "true" ]]; then
-    log_warn "[DRY RUN] Would restart fcitx5"
-    return
-  fi
-
-  pkill fcitx5 &>/dev/null || true
-  fcitx5 -d &>/dev/null &
-
-  log_ok "fcitx5 restarted"
 }
 
 # ─────────────────────────────────────────────
@@ -103,24 +70,28 @@ restart_fcitx() {
 diagnose_ime() {
   log_info "Diagnosing IME setup..."
 
-  if command -v fcitx5 &>/dev/null; then
-    log_ok "fcitx5 installed"
-  else
-    log_warn "fcitx5 missing"
-  fi
-
+  # Check env file
   if [[ -f "$ENV_FILE" ]]; then
     log_ok "Environment file exists"
   else
     log_warn "Environment file missing"
   fi
 
-  if [[ -d "$HOME/.config/fcitx5" ]]; then
-    log_ok "fcitx5 config directory exists"
+  # Check fcitx5 running
+  if pgrep -x fcitx5 &>/dev/null; then
+    log_ok "fcitx5 is running"
   else
-    log_warn "fcitx5 config missing"
+    log_warn "fcitx5 not running"
   fi
 
+  # Check fcitx5 installed
+  if command -v fcitx5 &>/dev/null; then
+    log_ok "fcitx5 installed"
+  else
+    log_warn "fcitx5 missing"
+  fi
+
+  echo
   log_ok "IME diagnostics complete"
 }
 
@@ -136,9 +107,12 @@ run_ime_setup() {
 
   log_info "IME setup started"
 
+  # Ensure required packages exist (light safety)
+  check_and_install fcitx5 fcitx5
+
   setup_env
-  setup_fcitx_config
-  restart_fcitx
+  start_fcitx
 
   echo
+  log_ok "IME setup complete"
 }
