@@ -13,7 +13,7 @@ AUR_PKGS=(
   "LocalSend|localsend-bin"
   "Stacher7|stacher7"
   "Pomodoro|gnome-shell-pomodoro"
-  "ZapZap|zapzap"
+  "ZapZap|zapzap-git"
   "Music Presence|music-presence-bin"
   "Memento|memento"
   "Telegram Downloader|tdl"
@@ -22,6 +22,7 @@ AUR_PKGS=(
   "Steam|steam"
   "Waydroid|waydroid"
   "Waydroid Gapps|waydroid-image-gapps"
+  "Jackett|jackett"
 )
 
 AUR_TOTAL=${#AUR_PKGS[@]}

@@ -3,4 +3,6 @@
 [3/24] AUR or Pacman : "Package name"
 whant to install y/n line
 
-for each install and install all without asking if the mode is ./init.sh --itsme
+for each install and install all without asking if the mode is ./init.sh --noconfirm
+
+2) add sudo systemctl enable --now jackett

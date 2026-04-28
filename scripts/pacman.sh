@@ -12,10 +12,13 @@ PACMAN_PKGS=(
   "CMake|cmake"
   "Zip|zip"
   "JQ|jq"
+  "Entr|entr"
+  "WL Clipboard|wl-clipboard"
 
   # ───────── GNOME / SYSTEM ─────────
   "Extension Manager|extension-manager"
   "GNU Stow|stow"
+  "Tree|tree"
   "Flatpak|flatpak"
   "UFW Firewall|ufw"
 

@@ -3,8 +3,15 @@
 # To backup ./easyeffects.sh backup
 # To restore ./easyeffects.sh restore /path/to/backup_file.tar.gz
 
+install_easyeffects_plugins() {
+    sudo pacman -S --needed --noconfirm \
+        lsp-plugins-lv2 \
+        calf \
+        zam-plugins-lv2 \
+        mda.lv2 \
+        fluidsynth
+}
 
-# Function to backup EasyEffects
 backup_easyeffects() {
     set -e
 
@@ -26,7 +33,6 @@ backup_easyeffects() {
     echo "[*] Backup complete: $ARCHIVE"
 }
 
-# Function to restore EasyEffects
 restore_easyeffects() {
     set -e
 
@@ -41,6 +47,9 @@ restore_easyeffects() {
         echo "[!] Backup file not found!"
         exit 1
     fi
+
+    echo "[*] Installing EasyEffects plugins..."
+    install_easyeffects_plugins
 
     echo "[*] Stopping EasyEffects..."
     pkill -x easyeffects || true
@@ -62,7 +71,6 @@ restore_easyeffects() {
     echo "[*] Restore complete!"
 }
 
-# Main script logic
 if [ "$1" == "backup" ]; then
     backup_easyeffects
 elif [ "$1" == "restore" ]; then
