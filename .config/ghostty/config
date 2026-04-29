@@ -51,7 +51,7 @@
 cursor-style-blink = true
 shell-integration-features = no-cursor
 
-theme = "Catppuccin Macchiato"
+theme = "Catppuccin Mocha"
 
 window-height = 32
 window-width = 106

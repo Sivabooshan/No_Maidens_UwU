@@ -59,7 +59,10 @@ PACMAN_PKGS=(
 
   # ───────── FONTS / DEV ─────────
   "Noto Fonts|noto-fonts-cjk"
+  "Nerd Font|ttf-firacode-nerd"
   "Neovim|neovim"
+  "Ripgrep|ripgrep"
+  "FD|fd"
   "Fastfetch|fastfetch"
 )
 
