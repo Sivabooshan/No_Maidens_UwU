@@ -84,7 +84,7 @@ eval "$(starship init zsh)"
  setopt HIST_IGNORE_ALL_DUPS
  setopt HIST_FIND_NO_DUPS
 
-# Better editor setup
+# editor setup
  export EDITOR='nvim'
  export VISUAL='nvim'
 
