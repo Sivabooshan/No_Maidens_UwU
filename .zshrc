@@ -115,7 +115,6 @@ eval "$(starship init zsh)"
 #
 # Aliases
  alias zshrc="nvim ~/.zshrc"
- alias omz="nvim ~/.oh-my-zsh"
  alias open="xdg-open"
  alias fastfetch="~/.config/fastfetch/animate.sh"
  alias tn="tmux new-session -A -s"
