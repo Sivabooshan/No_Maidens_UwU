@@ -48,7 +48,7 @@
 # # Just for example:
 # resize-overlay-duration = 4s 200ms
 
-cursor-style-blink = true
+cursor-style-blink = false
 shell-integration-features = no-cursor
 
 theme = "Catppuccin Mocha"
