@@ -1,94 +1,207 @@
-vim.opt.mouse = "a"
-vim.opt.ruler = false
+-- =========================
+-- Leader
+-- =========================
 vim.g.mapleader = " "
-vim.opt.guicursor = ""
-vim.opt.number = true
-vim.opt.cursorline = true
-vim.opt.relativenumber = true
-vim.opt.termguicolors = true
 
-vim.opt.expandtab = true
-vim.opt.shiftwidth = 4
-vim.opt.tabstop = 4
-vim.opt.softtabstop = 4
-vim.opt.autoindent = true
-vim.opt.smarttab = true
-vim.opt.smartindent = true
+-- =========================
+-- UI / Core Options
+-- =========================
+local opt = vim.opt
 
--- Search configs
-vim.opt.hlsearch = false
-vim.opt.incsearch = true
-vim.opt.ignorecase = true
-vim.opt.smartcase = true
+opt.mouse = "a"
+opt.ruler = false
+opt.guicursor = ""
+opt.number = true
+opt.relativenumber = true
+opt.cursorline = true
+opt.termguicolors = true
 
--- Keep 8 lines visible above/below the cursor
-vim.opt.scrolloff = 8
-vim.opt.wrap = true
-vim.opt.breakindent = true
+opt.scrolloff = 10
+opt.wrap = true
+opt.breakindent = true
 
--- File Handling
-vim.opt.swapfile = false
-vim.opt.backup = false
-
--- Nerd Font Support
 vim.g.have_nerd_font = true
 vim.g.netrw_banner = 0
 
--- Some essentials
-vim.keymap.set("n", "<leader>q", "<CMD>:q<CR>")
-vim.keymap.set("n", "<leader>Q", "<CMD>:q!<CR>")
-vim.keymap.set("n", "<leader>wq", "<CMD>:wqa<CR>")
-vim.keymap.set("n", "<leader>s", "<CMD>:source %<CR>")
-vim.keymap.set("n", "<leader>U", "<CMD>:lua vim.pack.update()<CR>")
+-- =========================
+-- Indentation
+-- =========================
+opt.expandtab = true
+opt.shiftwidth = 4
+opt.tabstop = 4
+opt.softtabstop = 4
 
--- Clipboard opts
-vim.keymap.set("n", "<leader>yy", '"+yy')
-vim.keymap.set("v", "<leader>y", '"+y')
-vim.keymap.set("n", "<leader>dd", '"+dd')
-vim.keymap.set("v", "<leader>d", '"+d')
-vim.keymap.set({ "n", "v" }, "<leader>p", '"+p')
+opt.autoindent = true
+opt.smartindent = true
+opt.smarttab = true
 
--- Clear search highlight with <Esc>
-vim.keymap.set("n", "<Esc>", "<CMD>nohlsearch<CR>")
-vim.keymap.set("n", "<leader>h", ":%s/")
+-- =========================
+-- Search
+-- =========================
+opt.hlsearch = false
+opt.incsearch = true
+opt.ignorecase = true
+opt.smartcase = true
 
--- Keep cursor centered when navigating search results
-vim.keymap.set("n", "n", "nzzzv")
-vim.keymap.set("n", "N", "Nzzzv")
+-- =========================
+-- Files
+-- =========================
+opt.swapfile = false
+opt.backup = false
 
+-- =========================
+-- Performance
+-- =========================
+opt.updatetime = 300
+
+-- =========================
 -- Autosave
-vim.opt.updatetime = 300
-
+-- =========================
 vim.api.nvim_create_autocmd({ "InsertLeave", "TextChanged" }, {
-    pattern = "*",
-    callback = function()
-        if vim.bo.modified and vim.bo.modifiable and vim.fn.expand("%") ~= "" then
-            vim.cmd("silent write")
-        end
-    end,
+	pattern = "*",
+	callback = function()
+		if vim.bo.modified and vim.bo.modifiable and vim.fn.expand("%") ~= "" then
+			vim.cmd("silent write")
+		end
+	end,
 })
 
--- Run current file
-vim.keymap.set("n", "<leader>r", function()
-    vim.cmd("write")
+-- =========================
+-- Keymaps
+-- =========================
+local map = vim.keymap.set
 
-    local ft = vim.bo.filetype
-    local file = vim.fn.expand("%")
-    local file_no_ext = vim.fn.expand("%:r")
+map("n", "<leader>u", "<cmd>UndotreeToggle<cr>", { desc = "Undo Tree" })
 
-    if ft == "python" then
-        vim.cmd("!python3 " .. file)
+map("n", "<leader>q", "<cmd>q<cr>", { desc = "Quit" })
+map("n", "<leader>Q", "<cmd>q!<cr>", { desc = "Force Quit" })
+map("n", "<leader>wq", "<cmd>wqa<cr>", { desc = "Save & Quit All" })
 
-    elseif ft == "c" then
-        vim.cmd("!gcc " .. file .. " -o " .. file_no_ext .. " && ./" .. file_no_ext)
+map("n", "<leader>s", "<cmd>source %<cr>", { desc = "Source file" })
 
-    elseif ft == "cpp" then
-        vim.cmd("!g++ " .. file .. " -o " .. file_no_ext .. " && ./" .. file_no_ext)
+-- Clipboard
+map("n", "<leader>cc", '"+yy')
+map("v", "<leader>c", '"+y')
+map("n", "<leader>xx", '"+dd')
+map("v", "<leader>x", '"+d')
+map({ "n", "v" }, "<leader>p", '"+p')
 
-    elseif ft == "lua" then
-        vim.cmd("luafile " .. file)
+-- Search helpers
+map("n", "<Esc>", "<cmd>nohlsearch<cr>")
+map("n", "<leader>h", ":%s/")
+map("n", "n", "nzzzv")
+map("n", "N", "Nzzzv")
 
-    else
-        print("No runner for " .. ft)
-    end
+-- =========================
+-- VS Code Style Tmux Runner
+-- =========================
+
+local runner_pane_id = nil
+
+local function is_tmux()
+	return vim.env.TMUX ~= nil
+end
+
+local function tmux(cmd)
+	vim.fn.system(cmd)
+end
+
+local function pane_alive(id)
+	if not id then return false end
+	local res = vim.fn.system("tmux list-panes -F '#{pane_id}'")
+	return vim.fn.match(res, id) ~= -1
+end
+
+-- create or reuse bottom pane
+local function ensure_runner()
+	if not is_tmux() then
+		print("Not inside tmux")
+		return false
+	end
+
+	if pane_alive(runner_pane_id) then
+		return true
+	end
+
+	-- create a persistent bottom pane
+	local id = vim.fn.system("tmux split-window -v -l 10 -P -F '#{pane_id}'")
+	runner_pane_id = vim.fn.trim(id)
+
+	return true
+end
+
+-- VS Code style execution
+local function run_in_runner(cmd)
+	if not runner_pane_id then return end
+
+	-- kill current running process (like VS Code terminal "stop")
+	tmux("tmux send-keys -t " .. runner_pane_id .. " C-c")
+
+	-- clear screen (VS Code-like clean run)
+	tmux("tmux send-keys -t " .. runner_pane_id .. " clear Enter")
+
+	-- run command
+	tmux("tmux send-keys -t " .. runner_pane_id .. " " .. vim.fn.shellescape(cmd) .. " Enter")
+end
+
+-- toggle focus like VS Code terminal toggle
+local function toggle_runner_focus()
+	if not ensure_runner() then return end
+
+	tmux("tmux select-pane -t " .. runner_pane_id)
+	tmux("tmux resize-pane -Z")
+end
+
+-- =========================
+-- Run current file (VS Code style)
+-- =========================
+
+local map = vim.keymap.set
+
+map("n", "<leader>r", function()
+	vim.cmd("write")
+
+	local ft = vim.bo.filetype
+	local file = vim.fn.expand("%:p")
+	local file_no_ext = vim.fn.expand("%:p:r")
+
+	local cmd
+
+	if ft == "python" then
+		cmd = "python3 " .. vim.fn.shellescape(file)
+
+	elseif ft == "c" then
+		cmd = "gcc "
+			.. vim.fn.shellescape(file)
+			.. " -o "
+			.. vim.fn.shellescape(file_no_ext)
+			.. " && "
+			.. vim.fn.shellescape(file_no_ext)
+
+	elseif ft == "cpp" then
+		cmd = "g++ "
+			.. vim.fn.shellescape(file)
+			.. " -o "
+			.. vim.fn.shellescape(file_no_ext)
+			.. " && "
+			.. vim.fn.shellescape(file_no_ext)
+
+	elseif ft == "lua" then
+		cmd = "lua " .. vim.fn.shellescape(file)
+
+	else
+		print("No runner for " .. ft)
+		return
+	end
+
+	if not ensure_runner() then
+		return
+	end
+
+	run_in_runner(cmd)
 end)
+
+-- VS Code style terminal toggle
+map("n", "<leader>t", function()
+	toggle_runner_focus()
+end, { desc = "Toggle Terminal (VSCode style)" })

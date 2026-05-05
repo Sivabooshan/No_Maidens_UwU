@@ -1,11 +1,13 @@
-return{
-  'nvim-lualine/lualine.nvim',
-  dependencies = { 'nvim-tree/nvim-web-devicons' },
+return {
+  "nvim-lualine/lualine.nvim",
+  dependencies = { "nvim-tree/nvim-web-devicons" },
+
   config = function()
-    require('lualine').setup({
+    require("lualine").setup({
       options = {
-        theme = 'tomorrow_night'
-      }
+        theme = "tomorrow_night",
+        globalstatus = true,
+      },
     })
-  end
+  end,
 }

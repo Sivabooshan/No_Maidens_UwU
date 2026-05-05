@@ -14,6 +14,7 @@ _darcs
 \.gitmodules
 
 .+~          # emacs backup files
+\.bak$       # .bak backup files
 \#.*\#       # emacs autosave files
 
 ^/README.*

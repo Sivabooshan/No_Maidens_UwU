@@ -63,6 +63,8 @@ PACMAN_PKGS=(
   "Neovim|neovim"
   "Ripgrep|ripgrep"
   "FD|fd"
+  "NPM|npm"
+  "Nodejs|nodejs"
   "Fastfetch|fastfetch"
 )
 
